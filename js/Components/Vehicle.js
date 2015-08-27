@@ -3,5 +3,8 @@
 */
 var Vehicle =
 {
-    velocity: new THREE.Vector3(),
+    acceleration: 0,
+    speed: 0.1,
+    stations: [],
+    currentDestination: 0
 };

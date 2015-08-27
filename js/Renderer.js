@@ -21,7 +21,7 @@ RenderingProcessor.prototype.update = function()
 
         if (renderable.mesh)
         {
-            renderable.mesh.position = transform.position;
+            renderable.mesh.position.copy(transform.position);
             renderable.mesh.quaternion = transform.orientation;
 
             if (!renderable.addedToScene)
