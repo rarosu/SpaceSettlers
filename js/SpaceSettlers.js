@@ -31,7 +31,7 @@ function SpaceSettlers()
         transform.position = new THREE.Vector3(0, 0, 0);
         vehicle.stations.push(new THREE.Vector3(-10, 10, 0));
         vehicle.stations.push(new THREE.Vector3(10, 10, 0));
-        vehicle.stations.push(new THREE.Vector3(0, 10, 0));
+        vehicle.stations.push(new THREE.Vector3(0, -10, 0));
 
         var geometry = new THREE.BoxGeometry(1, 1, 1);
         var material = new THREE.MeshLambertMaterial({color: 0x00ff00});

@@ -6,5 +6,6 @@ var Vehicle =
     acceleration: 0,
     speed: 0.1,
     stations: [],
-    currentDestination: 0
+    currentDestination: 0,
+    
 };
