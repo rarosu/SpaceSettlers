@@ -6,7 +6,8 @@ VehicleState = {
 
 VehicleActions = {
     Load: 0,
-    Unload: 1
+    Unload: 1,
+    UnloadAndLoad: 2
 }
 
 function Order(station, action)
@@ -23,6 +24,6 @@ var Vehicle =
     acceleration: 0,
     speed: 0.1,
     orders: [],
-    currentDestination: 0,
+    currentOrder: 0,
     state: VehicleState.Running
 };

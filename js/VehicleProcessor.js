@@ -24,23 +24,28 @@ VehicleProcessor.prototype.update = function()
                     {
                         case VehicleActions.Load:
                         {
-                            vehicle.state = VehicleState.Load;
+                            vehicle.state = VehicleState.Loading;
+                            break;
                         }
 
                         case VehicleActions.Unload:
                         {
-                            vehicle.state = VehicleState.Unload;
+                            vehicle.state = VehicleState.Unloading;
+                            break;
                         }
 
                         case VehicleActions.UnloadAndLoad:
                         {
-                            vehicle.state = VehicleState.Unload;
+                            vehicle.state = VehicleState.Unloading;
+                            break;
                         }
                     }
                 }
 
                 var direction = new THREE.Vector3().subVectors(vehicle.orders[vehicle.currentOrder].station, transform.position).normalize();
                 transform.position.add(direction.multiplyScalar(vehicle.speed));
+
+                break;
             }
 
             case VehicleState.Loading:
@@ -53,6 +58,7 @@ VehicleProcessor.prototype.update = function()
                     vehicle.state = VehicleState.Running;
                 }
 
+                break;
             }
 
             case VehicleState.Unloading:
@@ -72,6 +78,8 @@ VehicleProcessor.prototype.update = function()
                         vehicle.currentOrder = (vehicle.currentOrder + 1) % vehicle.orders.length;
                     }
                 }
+
+                break;
             }
         }
     }
