@@ -38,16 +38,45 @@ RenderingProcessor.prototype.update = function()
     this.renderer.render(this.scene, camera.camera);
 }
 
-RenderingProcessor.prototype.getTextSprite = function(text)
+RenderingProcessor.prototype.getTextSprite = function(text, scale)
 {
+    if (scale === undefined)
+        scale = 1;
+    
+    var size = 18;
+    var margin = 10;
+    var font = "Bold " + size + "pt Arial";
+    
+    // Create a context for determining the size of the real context.
     var canvas = document.createElement('canvas');
+    
     var context = canvas.getContext('2d');
-    context.fillStyle = "rgba(1,1,1,1.0)";
-    context.fillText(text, 0, 0);
+    context.font = font;
+    var textWidth = context.measureText(text).width;
+    
+    canvas.width = textWidth + margin;
+    canvas.height = size + margin;
+    
+    // Create a new, actual context for rendering.
+    var context = canvas.getContext('2d');
+    context.font = font;
+    context.fillStyle = "rgba(255, 255, 255, 1.0)";
+    context.textAlign = "start";
+    context.textBaseline = "middle";
+    context.fillText(text, 0, canvas.height / 2);
+    //context.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Generate a texture and a sprite from the canvas.
     var texture = new THREE.Texture(canvas);
     texture.needsUpdate = true;
+    texture.minFilter = THREE.NearestFilter;
+    
     var spriteMaterial = new THREE.SpriteMaterial(
-     { map: texture }
+        { map: texture }
     );
-    return new THREE.Sprite(spriteMaterial);
+    
+    var sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(scale * canvas.width / canvas.height, scale, 1);
+    
+    return sprite;
 }
