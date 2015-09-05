@@ -11,13 +11,56 @@ VehicleProcessor.prototype.update = function()
     {
         var transform = this.entityManager.getComponent(entities[i], 'Transform');
         var vehicle = this.entityManager.getComponent(entities[i], 'Vehicle');
+        var inventory = this.entityManager.getComponent(entities[i], 'Inventory');
 
-        if (new THREE.Vector3().subVectors(transform.position, vehicle.stations[vehicle.currentDestination]).lengthSq() < 0.01)
+        switch (vehicle.state)
         {
-            vehicle.currentDestination = (vehicle.currentDestination + 1) % vehicle.stations.length;
+            case VehicleState.Running:
+            {
+                if (new THREE.Vector3().subVectors(transform.position, vehicle.orders[vehicle.currentOrder].station).lengthSq() < 0.01)
+                {
+                    // At new destination!
+                    switch (vehicle.orders[vehicle.currentOrder].action)
+                    {
+                        case VehicleActions.Load:
+                        {
+                            vehicle.state = VehicleState.Load;
+                        }
+
+                        case VehicleActions.Unload:
+                        {
+                            vehicle.state = VehicleState.Unload;
+                        }
+
+                        case VehicleActions.UnloadAndLoad:
+                        {
+                            vehicle.state = VehicleState.Unload;
+                        }
+                    }
+                }
+
+                var direction = new THREE.Vector3().subVectors(vehicle.orders[vehicle.currentOrder].station, transform.position).normalize();
+                transform.position.add(direction.multiplyScalar(vehicle.speed));
+            }
+
+            case VehicleState.Loading:
+            {
+
+            }
+
+            case VehicleState.Unloading:
+
+            {
+
+            }
         }
 
-        var direction = new THREE.Vector3().subVectors(vehicle.stations[vehicle.currentDestination], transform.position).normalize();
-        transform.position.add(direction.multiplyScalar(vehicle.speed));
+        if(vehicle.state === VehicleState.Loading)
+        {
+            if(inventory.currentLoad < inventory.maxLoad)
+            {
+                inventory.currentLoad = Math.min(inventory.currentLoad + 10 * this.ticker.dt, inventory.maxLoad);
+            }
+        }
     }
 }

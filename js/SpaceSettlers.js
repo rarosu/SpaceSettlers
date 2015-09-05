@@ -7,6 +7,7 @@ function SpaceSettlers()
     this.entityManager.registerComponent('Renderable', Renderable);
     this.entityManager.registerComponent('Camera', Camera);
     this.entityManager.registerComponent('Vehicle', Vehicle);
+    this.entityManager.registerComponent('Inventory', Inventory);
 
     this.cameraEntity = this.entityManager.createEntity(['Camera']);
     this.entityManager.addTag(this.cameraEntity, 'Camera');
@@ -24,14 +25,15 @@ function SpaceSettlers()
     // Testing
     // Create a test box.
     {
-        this.vehicle1 = this.entityManager.createEntity(['Transform', 'Renderable', 'Vehicle']);
+        this.vehicle1 = this.entityManager.createEntity(['Transform', 'Renderable', 'Vehicle', 'Inventory']);
         var transform = this.entityManager.getComponent(this.vehicle1, 'Transform');
         var renderable = this.entityManager.getComponent(this.vehicle1, 'Renderable');
         var vehicle = this.entityManager.getComponent(this.vehicle1, 'Vehicle');
+        var inventory = this.entityManager.getComponent(this.vehicle1, 'Inventory');
         transform.position = new THREE.Vector3(0, 0, 0);
-        vehicle.stations.push(new THREE.Vector3(-10, 10, 0));
-        vehicle.stations.push(new THREE.Vector3(10, 10, 0));
-        vehicle.stations.push(new THREE.Vector3(0, -10, 0));
+        vehicle.orders.push(new Order(new THREE.Vector3(-10, 10, 0), VehicleActions.Load));
+        vehicle.orders.push(new Order(new THREE.Vector3(10, 10, 0), VehicleActions.Unload));
+        vehicle.orders.push(new Order(new THREE.Vector3(0, -10, 0), VehicleActions.UnloadAndLoad));
 
         var geometry = new THREE.BoxGeometry(1, 1, 1);
         var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
