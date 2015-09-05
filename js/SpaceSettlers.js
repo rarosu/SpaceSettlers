@@ -35,9 +35,25 @@ function SpaceSettlers()
         vehicle.orders.push(new Order(new THREE.Vector3(10, 10, 0), VehicleActions.Unload));
         vehicle.orders.push(new Order(new THREE.Vector3(0, -10, 0), VehicleActions.UnloadAndLoad));
 
+
+
+
         var geometry = new THREE.BoxGeometry(1, 1, 1);
         var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
         renderable.mesh = new THREE.Mesh(geometry, material);
+
+
+    }
+
+    {
+        this.textEntity = this.entityManager.createEntity(['Transform', 'Renderable']);
+        var transform = this.entityManager.getComponent(this.textEntity, 'Transform');
+        var renderable = this.entityManager.getComponent(this.textEntity, 'Renderable');
+
+        transform.position = new THREE.Vector3(0, 0, 0);
+
+        var sprite = this.renderingProcessor.getTextSprite('Loading... 76%');
+        renderable.mesh = sprite;
     }
 
     this.ticker.start(this, this.update);

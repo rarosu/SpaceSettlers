@@ -37,3 +37,17 @@ RenderingProcessor.prototype.update = function()
 
     this.renderer.render(this.scene, camera.camera);
 }
+
+RenderingProcessor.prototype.getTextSprite = function(text)
+{
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    context.fillStyle = "rgba(1,1,1,1.0)";
+    context.fillText(text, 0, 0);
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    var spriteMaterial = new THREE.SpriteMaterial(
+     { map: texture }
+    );
+    return new THREE.Sprite(spriteMaterial);
+}
