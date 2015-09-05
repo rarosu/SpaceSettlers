@@ -9,6 +9,23 @@ function RenderingProcessor(entityManager)
     // Hard-coded light for the time being.
     this.ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(this.ambientLight);
+    
+    // Setup window-resizing.
+    var _this = this;
+    var resizeCallback = function() 
+    {
+        _this.renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        var cameraEntity = _this.entityManager.getEntityByTag('Camera');
+        if (cameraEntity !== undefined)
+        {
+            var camera = _this.entityManager.getComponent(cameraEntity, 'Camera');
+            camera.camera.aspect = window.innerWidth / window.innerHeight;
+            camera.camera.updateProjectionMatrix();
+        }
+    }
+    
+    window.addEventListener('resize', resizeCallback, false);
 }
 
 RenderingProcessor.prototype.update = function()
