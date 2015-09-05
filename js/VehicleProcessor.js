@@ -45,21 +45,33 @@ VehicleProcessor.prototype.update = function()
 
             case VehicleState.Loading:
             {
+                inventory.currentLoad += 10 * this.ticker.dt;
+                if (inventory.currentLoad >= inventory.maxLoad)
+                {
+                    inventory.currentLoad = inventory.maxLoad;
+                    vehicle.currentOrder = (vehicle.currentOrder + 1) % vehicle.orders.length;
+                    vehicle.state = VehicleState.Running;
+                }
 
             }
 
             case VehicleState.Unloading:
-
             {
+                inventory.currentLoad -= 10 * this.ticker.dt;
+                if(inventory.currentLoad <= 0)
+                {
+                    inventory.currentLoad = 0;
+                    if(vehicle.orders[vehicle.currentOrder].action === VehicleActions.UnloadAndLoad)
+                    {
+                        vehicle.state = VehicleState.Loading;
+                    }
 
-            }
-        }
-
-        if(vehicle.state === VehicleState.Loading)
-        {
-            if(inventory.currentLoad < inventory.maxLoad)
-            {
-                inventory.currentLoad = Math.min(inventory.currentLoad + 10 * this.ticker.dt, inventory.maxLoad);
+                    if(vehicle.orders[vehicle.currentOrder].action === VehicleActions.Unload)
+                    {
+                        vehicle.state = VehicleState.Running;
+                        vehicle.currentOrder = (vehicle.currentOrder + 1) % vehicle.orders.length;
+                    }
+                }
             }
         }
     }
