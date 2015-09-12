@@ -22,6 +22,9 @@ function SpaceSettlers()
     this.vehicleProcessor = new VehicleProcessor(this.entityManager, this.ticker);
     this.entityManager.registerProcessor(this.vehicleProcessor, ['Transform', 'Vehicle']);
 
+    this.inventoryStatusProcessor = new InventoryStatusProcessor(this.entityManager, this.renderingProcessor);
+    this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
+
     // Testing
     // Create a test box.
     {
@@ -43,17 +46,6 @@ function SpaceSettlers()
         renderable.mesh = new THREE.Mesh(geometry, material);
 
 
-    }
-
-    {
-        this.textEntity = this.entityManager.createEntity(['Transform', 'Renderable']);
-        var transform = this.entityManager.getComponent(this.textEntity, 'Transform');
-        var renderable = this.entityManager.getComponent(this.textEntity, 'Renderable');
-
-        transform.position = new THREE.Vector3(0, 0, 0);
-
-        var sprite = this.renderingProcessor.getTextSprite('Loading... 76%');
-        renderable.mesh = sprite;
     }
 
     this.ticker.start(this, this.update);
