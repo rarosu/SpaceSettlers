@@ -25,6 +25,71 @@ function SpaceSettlers()
     this.inventoryStatusProcessor = new InventoryStatusProcessor(this.entityManager, this.renderingProcessor);
     this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
 
+    {
+        var chunkSize = 8;
+        var vertices = new Float32Array( chunkSize * chunkSize * 6 * 3);
+        for(var y = 0; y < chunkSize; y++)
+        {
+            for(var x = 0; x < chunkSize; x++)
+            {
+                var index = (x + y * chunkSize) * 6 * 3;
+                vertices[index] = x;
+                vertices[index+1] = y;
+                vertices[index+2] = 0;
+
+                vertices[index+3] = x;
+                vertices[index+4] = y+1;
+                vertices[index+5] = 0;
+
+                vertices[index+6] = x+1;
+                vertices[index+7] = y;
+                vertices[index+8] = 0;
+
+
+                vertices[index+9] = x;
+                vertices[index+10] = y+1;
+                vertices[index+11] = 0;
+
+                vertices[index+12] = x+1;
+                vertices[index+13] = y+1;
+                vertices[index+14] = 0;
+
+                vertices[index+15] = x+1;
+                vertices[index+16] = y;
+                vertices[index+17] = 0;
+            }
+        }
+
+        var geometry = new THREE.BufferGeometry();
+        geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+        var chunk = this.entityManager.createEntity(['Transform', 'Renderable']);
+        var transform = this.entityManager.getComponent(chunk, 'Transform');
+        var renderable = this.entityManager.getComponent(chunk, 'Renderable');
+        renderable.mesh = new THREE.Mesh(geometry, material);
+        transform.position = new THREE.Vector3(0,0,0);
+
+        // 1     3,6
+        //
+        // 2,4   5
+
+        /*
+        var geometry = new THREE.PlaneBufferGeometry(1,1);
+        var material = new THREE.MeshLambertMaterial({color: 0xffffff});
+        for(var x = 0; x < 512; x++)
+        {
+            for(var y = 0; y < 512; y++)
+            {
+                var tile = this.entityManager.createEntity(['Transform', 'Renderable']);
+                var transform = this.entityManager.getComponent(tile, 'Transform');
+                var renderable = this.entityManager.getComponent(tile, 'Renderable');
+                transform.position = new THREE.Vector3(x,y,0);
+                renderable.mesh = new THREE.Mesh(geometry, material);
+            }
+        }
+        */
+    }
+
 
     {
         this.station1 = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);

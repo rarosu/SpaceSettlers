@@ -9,13 +9,13 @@ function RenderingProcessor(entityManager)
     // Hard-coded light for the time being.
     this.ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(this.ambientLight);
-    
+
     // Setup window-resizing.
     var _this = this;
-    var resizeCallback = function() 
+    var resizeCallback = function()
     {
         _this.renderer.setSize(window.innerWidth, window.innerHeight);
-        
+
         var cameraEntity = _this.entityManager.getEntityByTag('Camera');
         if (cameraEntity !== undefined)
         {
@@ -24,7 +24,7 @@ function RenderingProcessor(entityManager)
             camera.camera.updateProjectionMatrix();
         }
     }
-    
+
     window.addEventListener('resize', resizeCallback, false);
 }
 
@@ -59,21 +59,21 @@ RenderingProcessor.prototype.getTextSprite = function(text, scale)
 {
     if (scale === undefined)
         scale = 1;
-    
+
     var size = 18;
     var margin = 10;
     var font = "Bold " + size + "pt Arial";
-    
+
     // Create a context for determining the size of the real context.
     var canvas = document.createElement('canvas');
-    
+
     var context = canvas.getContext('2d');
     context.font = font;
     var textWidth = context.measureText(text).width;
-    
+
     canvas.width = textWidth + margin;
     canvas.height = size + margin;
-    
+
     // Create a new, actual context for rendering.
     var context = canvas.getContext('2d');
     context.font = font;
@@ -82,18 +82,18 @@ RenderingProcessor.prototype.getTextSprite = function(text, scale)
     context.textBaseline = "middle";
     context.fillText(text, 0, canvas.height / 2);
     //context.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Generate a texture and a sprite from the canvas.
     var texture = new THREE.Texture(canvas);
     texture.needsUpdate = true;
     texture.minFilter = THREE.NearestFilter;
-    
+
     var spriteMaterial = new THREE.SpriteMaterial(
         { map: texture }
     );
-    
+
     var sprite = new THREE.Sprite(spriteMaterial);
     sprite.scale.set(scale * canvas.width / canvas.height, scale, 1);
-    
+
     return sprite;
 }
