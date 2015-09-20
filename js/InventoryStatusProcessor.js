@@ -22,7 +22,7 @@ InventoryStatusProcessor.prototype.update = function()
 
 
         var textRenderable = this.entityManager.getComponent(inventory.textEntity, 'Renderable');
-        this.renderer.scene.remove(textRenderable.mesh); 
+        this.renderer.scene.remove(textRenderable.mesh);
         textRenderable.mesh = this.renderer.getTextSprite(inventory.currentLoad / inventory.maxLoad * 100 + '%');
         textRenderable.addedToScene = false;
 

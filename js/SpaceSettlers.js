@@ -25,6 +25,52 @@ function SpaceSettlers()
     this.inventoryStatusProcessor = new InventoryStatusProcessor(this.entityManager, this.renderingProcessor);
     this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
 
+
+    {
+        this.station1 = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);
+        var transform = this.entityManager.getComponent(this.station1, 'Transform');
+        var renderable = this.entityManager.getComponent(this.station1, 'Renderable');
+        var inventory = this.entityManager.getComponent(this.station1, 'Inventory');
+        transform.position = new THREE.Vector3(-10, 10, 0);
+
+        inventory.currentLoad = 3000;
+        inventory.maxLoad = 3000;
+
+        var geometry = new THREE.BoxGeometry(1, 2, 1);
+        var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
+        renderable.mesh = new THREE.Mesh(geometry, material);
+    }
+
+    {
+        this.station2 = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);
+        var transform = this.entityManager.getComponent(this.station2, 'Transform');
+        var renderable = this.entityManager.getComponent(this.station2, 'Renderable');
+        var inventory = this.entityManager.getComponent(this.station2, 'Inventory');
+        transform.position = new THREE.Vector3(10, 10, 0);
+
+        inventory.currentLoad = 0;
+        inventory.maxLoad = 3000;
+
+        var geometry = new THREE.BoxGeometry(1, 2, 1);
+        var material = new THREE.MeshLambertMaterial({color: 0xff0000});
+        renderable.mesh = new THREE.Mesh(geometry, material);
+    }
+
+    {
+        this.station3 = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);
+        var transform = this.entityManager.getComponent(this.station3, 'Transform');
+        var renderable = this.entityManager.getComponent(this.station3, 'Renderable');
+        var inventory = this.entityManager.getComponent(this.station3, 'Inventory');
+        transform.position = new THREE.Vector3(0, -10, 0);
+
+        inventory.currentLoad = 3000;
+        inventory.maxLoad = 3000;
+
+        var geometry = new THREE.BoxGeometry(1, 2, 1);
+        var material = new THREE.MeshLambertMaterial({color: 0xff0000});
+        renderable.mesh = new THREE.Mesh(geometry, material);
+    }
+
     // Testing
     // Create a test box.
     {
@@ -34,19 +80,16 @@ function SpaceSettlers()
         var vehicle = this.entityManager.getComponent(this.vehicle1, 'Vehicle');
         var inventory = this.entityManager.getComponent(this.vehicle1, 'Inventory');
         transform.position = new THREE.Vector3(0, 0, 0);
-        vehicle.orders.push(new Order(new THREE.Vector3(-10, 10, 0), VehicleActions.Load));
-        vehicle.orders.push(new Order(new THREE.Vector3(10, 10, 0), VehicleActions.Unload));
-        vehicle.orders.push(new Order(new THREE.Vector3(0, -10, 0), VehicleActions.UnloadAndLoad));
-
-
-
+        vehicle.orders.push(new Order(this.station1, VehicleActions.Load));
+        vehicle.orders.push(new Order(this.station2, VehicleActions.Unload));
+        vehicle.orders.push(new Order(this.station3, VehicleActions.Load));
 
         var geometry = new THREE.BoxGeometry(1, 1, 1);
         var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
         renderable.mesh = new THREE.Mesh(geometry, material);
-
-
     }
+
+
 
     this.ticker.start(this, this.update);
 }
