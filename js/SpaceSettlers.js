@@ -1,5 +1,7 @@
 function SpaceSettlers()
 {
+    "use strict";
+
     this.ticker = new Ticker();
 
     this.entityManager = new ECS.EntityManager();
@@ -26,38 +28,42 @@ function SpaceSettlers()
     this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
 
     {
-        var chunkSize = 8;
-        var vertices = new Float32Array( chunkSize * chunkSize * 6 * 3);
+        // Vertex winding order:
+        // 1,6    2
+        //
+        // 5    3,4
+        var chunkSize = 16;
+        var vertices = new Float32Array(chunkSize * chunkSize * 6 * 3);
         for(var y = 0; y < chunkSize; y++)
         {
-            for(var x = 0; x < chunkSize; x++)
-            {
-                var index = (x + y * chunkSize) * 6 * 3;
-                vertices[index] = x;
-                vertices[index+1] = y;
-                vertices[index+2] = 0;
+           for(var x = 0; x < chunkSize; x++)
+           {
+               var index = (x + y * chunkSize) * 6 * 3;
+               vertices[index] = x;
+               vertices[index+1] = y;
+               vertices[index+2] = 0;
 
-                vertices[index+3] = x;
-                vertices[index+4] = y+1;
-                vertices[index+5] = 0;
+               vertices[index+3] = x+1;
+               vertices[index+4] = y;
+               vertices[index+5] = 0;
 
-                vertices[index+6] = x+1;
-                vertices[index+7] = y;
-                vertices[index+8] = 0;
+               vertices[index+6] = x+1;
+               vertices[index+7] = y+1;
+               vertices[index+8] = 0;
 
 
-                vertices[index+9] = x;
-                vertices[index+10] = y+1;
-                vertices[index+11] = 0;
+               vertices[index+9] = x+1;
+               vertices[index+10] = y+1;
+               vertices[index+11] = 0;
 
-                vertices[index+12] = x+1;
-                vertices[index+13] = y+1;
-                vertices[index+14] = 0;
+               vertices[index+12] = x;
+               vertices[index+13] = y+1;
+               vertices[index+14] = 0;
 
-                vertices[index+15] = x+1;
-                vertices[index+16] = y;
-                vertices[index+17] = 0;
-            }
+               vertices[index+15] = x;
+               vertices[index+16] = y;
+               vertices[index+17] = 0;
+           }
         }
 
         var geometry = new THREE.BufferGeometry();
@@ -67,27 +73,11 @@ function SpaceSettlers()
         var transform = this.entityManager.getComponent(chunk, 'Transform');
         var renderable = this.entityManager.getComponent(chunk, 'Renderable');
         renderable.mesh = new THREE.Mesh(geometry, material);
-        transform.position = new THREE.Vector3(0,0,0);
+        transform.position = new THREE.Vector3(-10,-10,0);
 
-        // 1     3,6
-        //
-        // 2,4   5
-
-        /*
-        var geometry = new THREE.PlaneBufferGeometry(1,1);
-        var material = new THREE.MeshLambertMaterial({color: 0xffffff});
-        for(var x = 0; x < 512; x++)
-        {
-            for(var y = 0; y < 512; y++)
-            {
-                var tile = this.entityManager.createEntity(['Transform', 'Renderable']);
-                var transform = this.entityManager.getComponent(tile, 'Transform');
-                var renderable = this.entityManager.getComponent(tile, 'Renderable');
-                transform.position = new THREE.Vector3(x,y,0);
-                renderable.mesh = new THREE.Mesh(geometry, material);
-            }
-        }
-        */
+        var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
+        var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
+        edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
     }
 
 
