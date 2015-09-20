@@ -18,12 +18,11 @@ InventoryStatusProcessor.prototype.update = function()
         }
 
         var textTransform = this.entityManager.getComponent(inventory.textEntity, 'Transform');
-        textTransform.position = new THREE.Vector3(transform.position.x, transform.position.y, transform.position.z);
-
+        textTransform.position = new THREE.Vector3(transform.position.x, transform.position.y + 2, transform.position.z);
 
         var textRenderable = this.entityManager.getComponent(inventory.textEntity, 'Renderable');
         this.renderer.scene.remove(textRenderable.mesh);
-        textRenderable.mesh = this.renderer.getTextSprite(inventory.currentLoad / inventory.maxLoad * 100 + '%');
+        textRenderable.mesh = this.renderer.getTextSprite((inventory.currentLoad / inventory.maxLoad * 100).toFixed(2) + '%');
         textRenderable.addedToScene = false;
 
     }
