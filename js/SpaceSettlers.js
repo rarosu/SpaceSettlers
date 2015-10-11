@@ -2,6 +2,7 @@ function SpaceSettlers()
 {
     "use strict";
 
+
     this.ticker = new Ticker();
 
     this.entityManager = new ECS.EntityManager();
@@ -10,6 +11,7 @@ function SpaceSettlers()
     this.entityManager.registerComponent('Camera', Camera);
     this.entityManager.registerComponent('Vehicle', Vehicle);
     this.entityManager.registerComponent('Inventory', Inventory);
+    this.entityManager.registerComponent('World', World);
 
     this.cameraEntity = this.entityManager.createEntity(['Camera']);
     this.entityManager.addTag(this.cameraEntity, 'Camera');
@@ -29,55 +31,21 @@ function SpaceSettlers()
 
     {
         // Vertex winding order:
-        // 1,6    2
-        //
-        // 5    3,4
-        var chunkSize = 16;
-        var vertices = new Float32Array(chunkSize * chunkSize * 6 * 3);
-        for(var y = 0; y < chunkSize; y++)
-        {
-           for(var x = 0; x < chunkSize; x++)
-           {
-               var index = (x + y * chunkSize) * 6 * 3;
-               vertices[index] = x;
-               vertices[index+1] = y;
-               vertices[index+2] = 0;
-
-               vertices[index+3] = x+1;
-               vertices[index+4] = y;
-               vertices[index+5] = 0;
-
-               vertices[index+6] = x+1;
-               vertices[index+7] = y+1;
-               vertices[index+8] = 0;
 
 
-               vertices[index+9] = x+1;
-               vertices[index+10] = y+1;
-               vertices[index+11] = 0;
 
-               vertices[index+12] = x;
-               vertices[index+13] = y+1;
-               vertices[index+14] = 0;
+    }
 
-               vertices[index+15] = x;
-               vertices[index+16] = y;
-               vertices[index+17] = 0;
-           }
-        }
+    {
 
-        var geometry = new THREE.BufferGeometry();
-        geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
-        var chunk = this.entityManager.createEntity(['Transform', 'Renderable']);
-        var transform = this.entityManager.getComponent(chunk, 'Transform');
-        var renderable = this.entityManager.getComponent(chunk, 'Renderable');
-        renderable.mesh = new THREE.Mesh(geometry, material);
-        transform.position = new THREE.Vector3(-10,-10,0);
-
-        var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
-        var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
-        edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
+        var self = this;
+        $.ajax({
+                url: "assets/world1.html",
+                async: false,
+                dataType: "json"
+            }).done(function(data) {
+                self.createWorld(data);
+            });
     }
 
 
@@ -154,4 +122,77 @@ SpaceSettlers.prototype.update = function()
     this.entityManager.update();
 }
 
-var settlers = new SpaceSettlers();
+SpaceSettlers.prototype.createWorld = function(data)
+{
+
+    this.world = this.entityManager.createEntity(['World']);
+    var worldComponent = this.entityManager.getComponent(this.world, 'World');
+
+    var chunksPerRow = data.chunksPerRow;
+    for(var c = 0; c < data.chunks.length; c++)
+    {
+        var vertices = new Float32Array(data.chunkSize * data.chunkSize * 6 * 3);
+
+
+        // 1,6    2
+        //
+        // 5    3,4
+        for(var y = 0; y < data.chunkSize; y++)
+        {
+           for(var x = 0; x < data.chunkSize; x++)
+           {
+               var tileIndex = x + y * data.chunkSize;
+               var height = data.chunks[c][tileIndex].height;
+
+               var index = tileIndex * 6 * 3;
+               vertices[index] = x;
+               vertices[index+1] = y;
+               vertices[index+2] = height;
+
+               vertices[index+3] = x+1;
+               vertices[index+4] = y;
+               vertices[index+5] = height;
+
+               vertices[index+6] = x+1;
+               vertices[index+7] = y+1;
+               vertices[index+8] = height;
+
+
+               vertices[index+9] = x+1;
+               vertices[index+10] = y+1;
+               vertices[index+11] = height;
+
+               vertices[index+12] = x;
+               vertices[index+13] = y+1;
+               vertices[index+14] = height;
+
+               vertices[index+15] = x;
+               vertices[index+16] = y;
+               vertices[index+17] = height;
+           }
+        }
+
+        var geometry = new THREE.BufferGeometry();
+        geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+
+        var chunk = this.entityManager.createEntity(['Transform', 'Renderable']);
+
+        var transform = this.entityManager.getComponent(chunk, 'Transform');
+        var renderable = this.entityManager.getComponent(chunk, 'Renderable');
+        renderable.mesh = new THREE.Mesh(geometry, material);
+        var chunkRow = Math.floor(c / chunksPerRow);
+        var chunkCol = c % chunksPerRow;
+        transform.position = new THREE.Vector3(chunkCol * data.chunkSize,chunkRow * data.chunkSize,0);
+
+        var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
+        var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
+        edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
+
+        worldComponent.chunks.push(chunk);
+    }
+}
+
+$(document).ready(function() {
+    var settlers = new SpaceSettlers();
+});
