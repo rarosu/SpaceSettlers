@@ -12,13 +12,14 @@ function SpaceSettlers()
     this.entityManager.registerComponent('Vehicle', Vehicle);
     this.entityManager.registerComponent('Inventory', Inventory);
     this.entityManager.registerComponent('World', World);
+    this.entityManager.registerComponent('Chunk', Chunk);
 
     this.cameraEntity = this.entityManager.createEntity(['Camera']);
     this.entityManager.addTag(this.cameraEntity, 'Camera');
     var camera = this.entityManager.getComponent(this.cameraEntity, 'Camera');
     camera.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000.0);
-    camera.camera.position.set(0, -1, 25);
-    camera.camera.lookAt(new THREE.Vector3().addVectors(camera.camera.position, new THREE.Vector3(0, 0, -1)));
+    camera.camera.position.set(0, -15, 25);
+    camera.camera.lookAt(new THREE.Vector3().addVectors(camera.camera.position, new THREE.Vector3(0, 1, -1)));
 
     this.renderingProcessor = new RenderingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.renderingProcessor, ['Transform', 'Renderable']);
@@ -30,14 +31,9 @@ function SpaceSettlers()
     this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
 
     {
-        // Vertex winding order:
-
-
-
-    }
-
-    {
-
+        this.worldGenerator = new WorldGenerator(this.entityManager);
+        this.world = this.worldGenerator.generateWorld({x: 8, y: 8}, 16);
+        /*
         var self = this;
         $.ajax({
                 url: "assets/world1.html",
@@ -46,6 +42,7 @@ function SpaceSettlers()
             }).done(function(data) {
                 self.createWorld(data);
             });
+        */
     }
 
 
@@ -124,7 +121,7 @@ SpaceSettlers.prototype.update = function()
 
 SpaceSettlers.prototype.createWorld = function(data)
 {
-
+    /*
     this.world = this.entityManager.createEntity(['World']);
     var worldComponent = this.entityManager.getComponent(this.world, 'World');
 
@@ -143,32 +140,33 @@ SpaceSettlers.prototype.createWorld = function(data)
            {
                var tileIndex = x + y * data.chunkSize;
                var height = data.chunks[c][tileIndex].height;
+               var slope = data.chunks[c][tileIndex].slope;
 
                var index = tileIndex * 6 * 3;
                vertices[index] = x;
                vertices[index+1] = y;
-               vertices[index+2] = height;
+               vertices[index+2] = height + (slope & 0x1);
 
                vertices[index+3] = x+1;
                vertices[index+4] = y;
-               vertices[index+5] = height;
+               vertices[index+5] = height + ((slope & 0x2) >> 1);
 
                vertices[index+6] = x+1;
                vertices[index+7] = y+1;
-               vertices[index+8] = height;
+               vertices[index+8] = height + ((slope & 0x3) >> 2);
 
 
                vertices[index+9] = x+1;
                vertices[index+10] = y+1;
-               vertices[index+11] = height;
+               vertices[index+11] = height + ((slope & 0x3) >> 2);
 
                vertices[index+12] = x;
                vertices[index+13] = y+1;
-               vertices[index+14] = height;
+               vertices[index+14] = height + ((slope & 0x4) >> 3);
 
                vertices[index+15] = x;
                vertices[index+16] = y;
-               vertices[index+17] = height;
+               vertices[index+17] = height + (slope & 0x1);
            }
         }
 
@@ -191,6 +189,7 @@ SpaceSettlers.prototype.createWorld = function(data)
 
         worldComponent.chunks.push(chunk);
     }
+    */
 }
 
 $(document).ready(function() {
