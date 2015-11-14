@@ -13,13 +13,19 @@ function SpaceSettlers()
     this.entityManager.registerComponent('Inventory', Inventory);
     this.entityManager.registerComponent('World', World);
     this.entityManager.registerComponent('Chunk', Chunk);
+    this.entityManager.registerComponent('InputReceiver', InputReceiver);
 
-    this.cameraEntity = this.entityManager.createEntity(['Camera']);
-    this.entityManager.addTag(this.cameraEntity, 'Camera');
-    var camera = this.entityManager.getComponent(this.cameraEntity, 'Camera');
-    camera.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000.0);
-    camera.camera.position.set(0, -15, 25);
-    camera.camera.lookAt(new THREE.Vector3().addVectors(camera.camera.position, new THREE.Vector3(0, 1, -1)));
+    {
+        this.cameraEntity = this.entityManager.createEntity(['Camera', 'Transform', 'InputReceiver']);
+        this.entityManager.addTag(this.cameraEntity, 'Camera');
+        var camera = this.entityManager.getComponent(this.cameraEntity, 'Camera');
+        var transform = this.entityManager.getComponent(this.cameraEntity, 'Transform');
+        transform.position = new THREE.Vector3(0, -20, 25);
+        camera.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000.0);
+        camera.camera.position.set(transform.position.x, transform.position.y, transform.position.z);
+        camera.camera.lookAt(new THREE.Vector3().addVectors(camera.camera.position, new THREE.Vector3(0, 1, -1)));
+    }
+
 
     this.renderingProcessor = new RenderingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.renderingProcessor, ['Transform', 'Renderable']);
@@ -30,19 +36,12 @@ function SpaceSettlers()
     this.inventoryStatusProcessor = new InventoryStatusProcessor(this.entityManager, this.renderingProcessor);
     this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
 
+    this.inputProcessor = new InputProcessor(this.entityManager);
+    this.entityManager.registerProcessor(this.inputProcessor, ['InputReceiver']);
+
     {
         this.worldGenerator = new WorldGenerator(this.entityManager);
         this.world = this.worldGenerator.generateWorld({x: 8, y: 8}, 16);
-        /*
-        var self = this;
-        $.ajax({
-                url: "assets/world1.html",
-                async: false,
-                dataType: "json"
-            }).done(function(data) {
-                self.createWorld(data);
-            });
-        */
     }
 
 
@@ -117,79 +116,33 @@ function SpaceSettlers()
 SpaceSettlers.prototype.update = function()
 {
     this.entityManager.update();
-}
 
-SpaceSettlers.prototype.createWorld = function(data)
-{
-    /*
-    this.world = this.entityManager.createEntity(['World']);
-    var worldComponent = this.entityManager.getComponent(this.world, 'World');
-
-    var chunksPerRow = data.chunksPerRow;
-    for(var c = 0; c < data.chunks.length; c++)
     {
-        var vertices = new Float32Array(data.chunkSize * data.chunkSize * 6 * 3);
+        var cameraEntity = this.entityManager.getEntityByTag('Camera');
+        var camera = this.entityManager.getComponent(cameraEntity, 'Camera')
+        var transform = this.entityManager.getComponent(cameraEntity, 'Transform');
+        var inputReceiver = this.entityManager.getComponent(cameraEntity, 'InputReceiver');
 
-
-        // 1,6    2
-        //
-        // 5    3,4
-        for(var y = 0; y < data.chunkSize; y++)
-        {
-           for(var x = 0; x < data.chunkSize; x++)
-           {
-               var tileIndex = x + y * data.chunkSize;
-               var height = data.chunks[c][tileIndex].height;
-               var slope = data.chunks[c][tileIndex].slope;
-
-               var index = tileIndex * 6 * 3;
-               vertices[index] = x;
-               vertices[index+1] = y;
-               vertices[index+2] = height + (slope & 0x1);
-
-               vertices[index+3] = x+1;
-               vertices[index+4] = y;
-               vertices[index+5] = height + ((slope & 0x2) >> 1);
-
-               vertices[index+6] = x+1;
-               vertices[index+7] = y+1;
-               vertices[index+8] = height + ((slope & 0x3) >> 2);
-
-
-               vertices[index+9] = x+1;
-               vertices[index+10] = y+1;
-               vertices[index+11] = height + ((slope & 0x3) >> 2);
-
-               vertices[index+12] = x;
-               vertices[index+13] = y+1;
-               vertices[index+14] = height + ((slope & 0x4) >> 3);
-
-               vertices[index+15] = x;
-               vertices[index+16] = y;
-               vertices[index+17] = height + (slope & 0x1);
-           }
+        if(inputReceiver.keyCodes.indexOf(87) >= 0) {
+            transform.position.y += 0.5;
         }
 
-        var geometry = new THREE.BufferGeometry();
-        geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-        var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+        if(inputReceiver.keyCodes.indexOf(83) >= 0) {
+            transform.position.y -= 0.5;
+        }
 
-        var chunk = this.entityManager.createEntity(['Transform', 'Renderable']);
+        if(inputReceiver.keyCodes.indexOf(65) >= 0) {
+            transform.position.x -= 0.5;
+        }
 
-        var transform = this.entityManager.getComponent(chunk, 'Transform');
-        var renderable = this.entityManager.getComponent(chunk, 'Renderable');
-        renderable.mesh = new THREE.Mesh(geometry, material);
-        var chunkRow = Math.floor(c / chunksPerRow);
-        var chunkCol = c % chunksPerRow;
-        transform.position = new THREE.Vector3(chunkCol * data.chunkSize,chunkRow * data.chunkSize,0);
+        if(inputReceiver.keyCodes.indexOf(68) >= 0) {
+            transform.position.x += 0.5;
+        }
 
-        var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
-        var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
-        edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
-
-        worldComponent.chunks.push(chunk);
+        camera.camera.position.set(transform.position.x, transform.position.y, transform.position.z);
     }
-    */
+
+
 }
 
 $(document).ready(function() {

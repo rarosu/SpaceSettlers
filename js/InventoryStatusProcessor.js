@@ -14,7 +14,6 @@ InventoryStatusProcessor.prototype.update = function()
         if(inventory.textEntity == -1)
         {
             inventory.textEntity = this.entityManager.createEntity(['Transform', 'Renderable']);
-
         }
 
         var textTransform = this.entityManager.getComponent(inventory.textEntity, 'Transform');
