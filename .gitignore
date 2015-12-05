@@ -1,2 +1,4 @@
 # Ignore backup files
 *~
+*.InfText
+global-acl.xml
