@@ -1,8 +1,11 @@
 var InputReceiver =
 {
-    mouseDeltaX : 0.0,
-    mouseDeltaY: 0.0,
-    mouseLeft: false,
-    mouseRight: false,
-    keyCodes: new Array()
+    mousePosition: new THREE.Vector2(),
+    mousePositionDelta: new THREE.Vector2(),
+    mouseDownPosition: new THREE.Vector2(),
+    mouseLeftDown: false,
+    mouseRightDown: false,
+    keyCodes: new Array(),
+    mouseDown: function (entityManager) {},
+    mouseMove: function(entityManager) {}
 };

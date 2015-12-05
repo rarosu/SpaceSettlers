@@ -20,10 +20,39 @@ function SpaceSettlers()
         this.entityManager.addTag(this.cameraEntity, 'Camera');
         var camera = this.entityManager.getComponent(this.cameraEntity, 'Camera');
         var transform = this.entityManager.getComponent(this.cameraEntity, 'Transform');
-        transform.position = new THREE.Vector3(0, -20, 25);
+        var inputReceiver = this.entityManager.getComponent(this.cameraEntity, 'InputReceiver');
+
+        inputReceiver.mouseDown = function(cameraEntity, entityManager) {
+            var camera = entityManager.getComponent(cameraEntity, 'Camera');
+            camera.azimuthalSaved = camera.azimuthal;
+            camera.polarSaved = camera.polar;
+        };
+
+        inputReceiver.mouseMove = function(cameraEntity, entityManager) {
+            var camera = entityManager.getComponent(cameraEntity, 'Camera');
+            var transform = entityManager.getComponent(cameraEntity, 'Transform');
+            var inputReceiver = entityManager.getComponent(cameraEntity, 'InputReceiver');
+            if(inputReceiver.mouseLeftDown)
+            {
+                camera.azimuthal += inputReceiver.mousePositionDelta.x / 100;
+                camera.polar += inputReceiver.mousePositionDelta.y / 100;
+            }
+
+            transform.position = new THREE.Vector3(camera.radius * Math.sin(camera.polar)  * Math.cos(camera.azimuthal), camera.radius * Math.sin(camera.polar) * Math.sin(camera.azimuthal), camera.radius * Math.cos(camera.polar));
+
+            camera.camera.position.set(transform.position.x, transform.position.y, transform.position.z);
+            camera.camera.lookAt(new THREE.Vector3(camera.lookAt.x, camera.lookAt.y, camera.lookAt.z));
+            //camera.
+            };
+
+        transform.position = new THREE.Vector3(camera.radius * Math.sin(camera.polar)  * Math.cos(camera.azimuthal), camera.radius * Math.sin(camera.polar) * Math.sin(camera.azimuthal), camera.radius * Math.cos(camera.polar));
         camera.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000.0);
+
         camera.camera.position.set(transform.position.x, transform.position.y, transform.position.z);
-        camera.camera.lookAt(new THREE.Vector3().addVectors(camera.camera.position, new THREE.Vector3(0, 1, -1)));
+        camera.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        
+
     }
 
 
@@ -37,7 +66,7 @@ function SpaceSettlers()
     this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
 
     this.inputProcessor = new InputProcessor(this.entityManager);
-    this.entityManager.registerProcessor(this.inputProcessor, ['InputReceiver']);
+    this.entityManager.registerProcessor(this.inputProcessor, ['InputReceiver', 'Camera']);
 
     {
         this.worldGenerator = new WorldGenerator(this.entityManager);
@@ -125,21 +154,26 @@ SpaceSettlers.prototype.update = function()
 
         if(inputReceiver.keyCodes.indexOf(87) >= 0) {
             transform.position.y += 0.5;
+            camera.lookAt.y += 0.5;
         }
 
         if(inputReceiver.keyCodes.indexOf(83) >= 0) {
             transform.position.y -= 0.5;
+            camera.lookAt.y -= 0.5;
         }
 
         if(inputReceiver.keyCodes.indexOf(65) >= 0) {
             transform.position.x -= 0.5;
+            camera.lookAt.x -= 0.5;
         }
 
         if(inputReceiver.keyCodes.indexOf(68) >= 0) {
             transform.position.x += 0.5;
+            camera.lookAt.x += 0.5;
         }
 
-        camera.camera.position.set(transform.position.x, transform.position.y, transform.position.z);
+        //camera.camera.position.set(transform.position.x, transform.position.y, transform.position.z);
+        //camera.camera.lookAt(new THREE.Vector3(camera.lookAt.x, camera.lookAt.y, camera.lookAt.z));
     }
 
 
