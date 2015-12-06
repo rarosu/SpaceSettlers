@@ -1,22 +1,21 @@
 function VehicleProcessor(entityManager, ticker)
 {
     this.entityManager = entityManager;
+	this.entityFilter = this.entityManager.createEntityFilter(['Transform', 'Vehicle']);
     this.ticker = ticker;
 }
 
 VehicleProcessor.prototype.update = function()
 {
-    var entities = this.entityManager.getEntitiesByProcessor(this);
-    for (var i = 0; i < entities.length; i++)
+    for (var entity = this.entityFilter.first(); entity !== undefined; entity = this.entityFilter.next()) 
     {
-        var transform = this.entityManager.getComponent(entities[i], 'Transform');
-        var vehicle = this.entityManager.getComponent(entities[i], 'Vehicle');
-        var vehicleInventory = this.entityManager.getComponent(entities[i], 'Inventory');
+        var transform = this.entityManager.getComponent(entity, 'Transform');
+        var vehicle = this.entityManager.getComponent(entity, 'Vehicle');
+        var vehicleInventory = this.entityManager.getComponent(entity, 'Inventory');
 
         var station =  vehicle.orders[vehicle.currentOrder].station;
         var stationTransform = this.entityManager.getComponent(station, 'Transform');
         var stationInventory = this.entityManager.getComponent(station, 'Inventory');
-
 
         switch (vehicle.state)
         {

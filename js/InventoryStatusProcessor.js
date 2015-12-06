@@ -2,15 +2,15 @@ function InventoryStatusProcessor(entityManager, renderer)
 {
     this.entityManager = entityManager;
     this.renderer = renderer;
+	this.entityFilter = this.entityManager.createEntityFilter(['Inventory', 'Transform']);
 }
 
 InventoryStatusProcessor.prototype.update = function()
 {
-    var entities = this.entityManager.getEntitiesByProcessor(this);
-    for(var i = 0; i<entities.length; i++)
+    for (var entity = this.entityFilter.first(); entity !== undefined; entity = this.entityFilter.next()) 
     {
-        var transform = this.entityManager.getComponent(entities[i], 'Transform');
-        var inventory = this.entityManager.getComponent(entities[i], 'Inventory');
+        var transform = this.entityManager.getComponent(entity, 'Transform');
+        var inventory = this.entityManager.getComponent(entity, 'Inventory');
         if(inventory.textEntity == -1)
         {
             inventory.textEntity = this.entityManager.createEntity(['Transform', 'Renderable']);
@@ -23,6 +23,5 @@ InventoryStatusProcessor.prototype.update = function()
         this.renderer.scene.remove(textRenderable.mesh);
         textRenderable.mesh = this.renderer.getTextSprite((inventory.currentLoad / inventory.maxLoad * 100).toFixed(2) + '%');
         textRenderable.addedToScene = false;
-
     }
 }

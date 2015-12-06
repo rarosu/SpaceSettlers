@@ -1,6 +1,7 @@
 function RenderingProcessor(entityManager)
 {
     this.entityManager = entityManager;
+	this.entityFilter = this.entityManager.createEntityFilter(['Transform', 'Renderable']);
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -42,11 +43,10 @@ function RenderingProcessor(entityManager)
 
 RenderingProcessor.prototype.update = function()
 {
-    var entities = this.entityManager.getEntitiesByProcessor(this);
-    for (var i = 0; i < entities.length; i++)
+    for (var entity = this.entityFilter.first(); entity !== undefined; entity = this.entityFilter.next()) 
     {
-        var transform = this.entityManager.getComponent(entities[i], 'Transform');
-        var renderable = this.entityManager.getComponent(entities[i], 'Renderable');
+        var transform = this.entityManager.getComponent(entity, 'Transform');
+        var renderable = this.entityManager.getComponent(entity, 'Renderable');
 
         if (renderable.mesh)
         {

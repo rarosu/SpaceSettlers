@@ -2,7 +2,6 @@ function SpaceSettlers()
 {
     "use strict";
 
-
     this.ticker = new Ticker();
 
     this.entityManager = new ECS.EntityManager();
@@ -57,16 +56,16 @@ function SpaceSettlers()
 
 
     this.renderingProcessor = new RenderingProcessor(this.entityManager);
-    this.entityManager.registerProcessor(this.renderingProcessor, ['Transform', 'Renderable']);
+    this.entityManager.registerProcessor(this.renderingProcessor);
 
     this.vehicleProcessor = new VehicleProcessor(this.entityManager, this.ticker);
-    this.entityManager.registerProcessor(this.vehicleProcessor, ['Transform', 'Vehicle']);
+    this.entityManager.registerProcessor(this.vehicleProcessor);
 
     this.inventoryStatusProcessor = new InventoryStatusProcessor(this.entityManager, this.renderingProcessor);
-    this.entityManager.registerProcessor(this.inventoryStatusProcessor, ['Inventory', 'Transform']);
+    this.entityManager.registerProcessor(this.inventoryStatusProcessor);
 
     this.inputProcessor = new InputProcessor(this.entityManager);
-    this.entityManager.registerProcessor(this.inputProcessor, ['InputReceiver', 'Camera']);
+    this.entityManager.registerProcessor(this.inputProcessor);
 
     {
         this.worldGenerator = new WorldGenerator(this.entityManager);
