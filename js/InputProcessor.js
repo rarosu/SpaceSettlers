@@ -11,37 +11,41 @@ function InputProcessor(entityManager)
 
 InputProcessor.prototype.update = function()
 {
-
+    for (var entity = this.entityFilter.first(); entity !== undefined; entity = this.entityFilter.next())
+    {
+        var inputReceiver = this.entityManager.getComponent(entity, 'InputReceiver');
+        inputReceiver.previousState = clone(inputReceiver.currentState);
+    }
 }
 
 InputProcessor.prototype.keydown = function(e)
 {
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
-	var entityFilter = e.data[2];
-	
-	for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
-	{
-		var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
-		var index = inputReceiver.keyCodes.indexOf(e.keyCode);
+    var entityFilter = e.data[2];
+    
+    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
+    {
+        var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
+        var index = inputReceiver.currentState.keyCodes.indexOf(e.keyCode);
         if (index < 0) {
-			inputReceiver.keyCodes.push(e.keyCode);
+            inputReceiver.currentState.keyCodes.push(e.keyCode);
         }
-	}
+    }
 }
 
 InputProcessor.prototype.keyup = function(e)
 {
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
-	var entityFilter = e.data[2];
-	
+    var entityFilter = e.data[2];
+    
     for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
-	{
+    {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
-        var index = inputReceiver.keyCodes.indexOf(e.keyCode);
+        var index = inputReceiver.currentState.keyCodes.indexOf(e.keyCode);
         if (index >= 0) {
-            inputReceiver.keyCodes.splice(index, 1);
+            inputReceiver.currentState.keyCodes.splice(index, 1);
         }
     }
 }
@@ -50,17 +54,13 @@ InputProcessor.prototype.mousemove = function(e)
 {
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
-	var entityFilter = e.data[2];
-	
+    var entityFilter = e.data[2];
+    
     for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
-        inputReceiver.mousePositionDelta.x = e.clientX - inputReceiver.mousePosition.x;
-        inputReceiver.mousePositionDelta.y = e.clientY - inputReceiver.mousePosition.y;
-        inputReceiver.mousePosition.x = e.clientX;
-        inputReceiver.mousePosition.y = e.clientY;
-        if (inputReceiver.mouseMove)
-            inputReceiver.mouseMove(entity, entityManager);
+        inputReceiver.currentState.mousePosition.x = e.clientX;
+        inputReceiver.currentState.mousePosition.y = e.clientY;
     }
 }
 
@@ -68,16 +68,15 @@ InputProcessor.prototype.mousedown = function(e)
 {
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
-	var entityFilter = e.data[2];
-	
+    var entityFilter = e.data[2];
+    
     for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
-        inputReceiver.mouseDownPosition.x = e.clientX;
-        inputReceiver.mouseDownPosition.y = e.clientY;
-        inputReceiver.mouseLeftDown = true;
-        if (inputReceiver.mouseDown)
-            inputReceiver.mouseDown(entity, entityManager);
+        if(e.which == 1) 
+            inputReceiver.currentState.buttons.left = true;
+        if(e.which == 3)
+            inputReceiver.currentState.buttons.right = true;
     }
 }
 
@@ -85,11 +84,14 @@ InputProcessor.prototype.mouseup = function(e)
 {
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
-	var entityFilter = e.data[2];
-	
+    var entityFilter = e.data[2];
+    
     for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
-        inputReceiver.mouseLeftDown = false;
+        if(e.which == 1) 
+            inputReceiver.currentState.buttons.left = false;
+        if(e.which == 3)
+            inputReceiver.currentState.buttons.right = false;
     }
 }

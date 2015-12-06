@@ -11,18 +11,6 @@ function RenderingProcessor(entityManager)
     this.ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(this.ambientLight);
 
-    var cameraEntity = this.entityManager.getEntityByTag('Camera');
-    if (cameraEntity !== undefined)
-    {
-        var camera = this.entityManager.getComponent(cameraEntity, 'Camera');
-        controls = new THREE.OrbitControls( camera.camera, this.renderer.domElement );
-                        //controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.25;
-        controls.enableZoom = true;
-    }
-
-
     // Setup window-resizing.
     var _this = this;
     var resizeCallback = function()
