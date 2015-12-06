@@ -32,6 +32,9 @@ CameraProcessor.prototype.update = function()
 
         theta += dtheta;
         phi += dphi;
+        var epsilon = 0.01;
+        if (phi < -Math.PI * 0.5 + epsilon) phi = -Math.PI * 0.5 + epsilon;
+        if (phi > Math.PI * 0.5 - epsilon) phi = Math.PI * 0.5 - epsilon;
 
         var h = camera.radius * Math.cos(phi);
         var x = h * Math.cos(theta);
