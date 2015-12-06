@@ -23,6 +23,7 @@ function SpaceSettlers()
         camera.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000.0);
     }
 
+    
 
     this.renderingProcessor = new RenderingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.renderingProcessor);
@@ -33,11 +34,11 @@ function SpaceSettlers()
     this.inventoryStatusProcessor = new InventoryStatusProcessor(this.entityManager, this.renderingProcessor);
     this.entityManager.registerProcessor(this.inventoryStatusProcessor);
 
-    this.inputProcessor = new InputProcessor(this.entityManager);
-    this.entityManager.registerProcessor(this.inputProcessor);
-
     this.cameraProcessor = new CameraProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.cameraProcessor);
+
+    this.inputProcessor = new InputProcessor(this.entityManager);
+    this.entityManager.registerProcessor(this.inputProcessor);
 
     {
         this.worldGenerator = new WorldGenerator(this.entityManager);

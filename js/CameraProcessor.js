@@ -20,8 +20,8 @@ CameraProcessor.prototype.update = function()
             // Orbit the camera.
             var dx = inputReceiver.currentState.mousePosition.x - inputReceiver.previousState.mousePosition.x;
             var dy = inputReceiver.currentState.mousePosition.y - inputReceiver.previousState.mousePosition.y;
-            dtheta = dx * 100;
-            dphi = dy * 100;
+            dtheta = dx * 0.05;
+            dphi = dy * 0.05;
         }
 
         var offset = new THREE.Vector3();
