@@ -20,13 +20,13 @@ CameraProcessor.prototype.update = function()
             // Orbit the camera.
             var dx = inputReceiver.currentState.mousePosition.x - inputReceiver.previousState.mousePosition.x;
             var dy = inputReceiver.currentState.mousePosition.y - inputReceiver.previousState.mousePosition.y;
-            dtheta = dx * 0.05;
-            dphi = dy * 0.05;
+            dtheta = dx * 0.01;
+            dphi = dy * 0.01;
         }
-
+        
         var offset = new THREE.Vector3();
         offset.copy(camera.camera.position).sub(camera.lookAt);
-
+        
         var theta = Math.atan2(offset.z, offset.x);
         var phi = Math.asin(offset.y / camera.radius);
 
@@ -36,14 +36,16 @@ CameraProcessor.prototype.update = function()
         if (phi < -Math.PI * 0.5 + epsilon) phi = -Math.PI * 0.5 + epsilon;
         if (phi > Math.PI * 0.5 - epsilon) phi = Math.PI * 0.5 - epsilon;
 
+
         var h = camera.radius * Math.cos(phi);
         var x = h * Math.cos(theta);
         var y = camera.radius * Math.sin(phi);
         var z = h * Math.sin(theta);
-
+        
         offset.x = x;
         offset.y = y;
         offset.z = z;
+       
 
         camera.camera.position.copy(camera.lookAt).add(offset);
         camera.camera.lookAt(camera.lookAt);

@@ -36,7 +36,7 @@ WorldGenerator.prototype.generateChunk = function(x, y, chunkSize)
     this.generateSlopes(chunk, chunkSize);
     this.generateVertices(chunkSize, chunk, renderable);
 
-    transform.position = new THREE.Vector3(x * chunkSize, y * chunkSize, 0);
+    transform.position = new THREE.Vector3(x * chunkSize, 0, y * chunkSize);
 
     var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
     var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
@@ -163,29 +163,29 @@ WorldGenerator.prototype.generateVertices = function(chunkSize, chunkComponent, 
 
             var index = tileIndex * 6 * 3;
             vertices[index] = x;
-            vertices[index+1] = y;
-            vertices[index+2] = height + (slope & 0x1);
+            vertices[index+1] = height + (slope & 0x1);
+            vertices[index+2] = y;
 
             vertices[index+3] = x+1;
-            vertices[index+4] = y;
-            vertices[index+5] = height + ((slope & 0x2) >> 1);
+            vertices[index+4] = height + ((slope & 0x2) >> 1);
+            vertices[index+5] = y;
 
             vertices[index+6] = x+1;
-            vertices[index+7] = y+1;
-            vertices[index+8] = height + ((slope & 0x4) >> 2);
+            vertices[index+7] = height + ((slope & 0x4) >> 2);
+            vertices[index+8] = y+1;
 
 
             vertices[index+9] = x+1;
-            vertices[index+10] = y+1;
-            vertices[index+11] = height + ((slope & 0x4) >> 2);
+            vertices[index+10] = height + ((slope & 0x4) >> 2);
+            vertices[index+11] = y+1;
 
             vertices[index+12] = x;
-            vertices[index+13] = y+1;
-            vertices[index+14] = height + ((slope & 0x8) >> 3);
+            vertices[index+13] = height + ((slope & 0x8) >> 3);
+            vertices[index+14] = y+1;
 
             vertices[index+15] = x;
-            vertices[index+16] = y;
-            vertices[index+17] = height + (slope & 0x1);
+            vertices[index+16] = height + (slope & 0x1);
+            vertices[index+17] = y;
         }
     }
 
