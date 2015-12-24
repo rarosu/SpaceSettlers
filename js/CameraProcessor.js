@@ -21,9 +21,6 @@ CameraProcessor.prototype.update = function()
         forward.normalize();
         right.crossVectors(forward, new THREE.Vector3(0, 1, 0));
 
-        console.log(inputReceiver.currentState.keyCodes);
-        //console.log(inputReceiver);
-
         if (inputReceiver.currentState.keyCodes.indexOf(KEYCODE_W) !== -1) {
             camera.lookAt.addScaledVector(forward, speed);
             camera.camera.position.addScaledVector(forward, speed);

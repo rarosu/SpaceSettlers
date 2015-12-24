@@ -24,10 +24,13 @@ WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
 
 WorldGenerator.prototype.generateChunk = function(x, y, chunkSize)
 {
-    var chunkEntity = this.entityManager.createEntity(['Transform', 'Renderable', 'Chunk']);
+    var chunkEntity = this.entityManager.createEntity(['Transform', 'Renderable', 'Chunk', 'Pickable']);
     var chunk = this.entityManager.getComponent(chunkEntity, 'Chunk');
     var transform = this.entityManager.getComponent(chunkEntity, 'Transform');
     var renderable = this.entityManager.getComponent(chunkEntity, 'Renderable');
+    var pickable = this.entityManager.getComponent(chunkEntity, 'Pickable');
+
+    pickable.x = 4;
 
     chunk.heights = new Array(chunkSize * chunkSize);
     chunk.slopes = new Array(chunkSize * chunkSize);

@@ -44,73 +44,73 @@ var ECS = (function()
         @return {object} - A clone of obj.
     */
     function clone(obj)
-    {
-        var copy;
+	{
+		var copy;
 
-        // Handle the 3 simple types, and null or undefined
-        if (null === obj || "object" != typeof obj)
-            return obj;
+		// Handle the 3 simple types, and null or undefined
+		if (null === obj || "object" != typeof obj)
+			return obj;
 
-        // Handle Date
-        if (obj instanceof Date)
-        {
-            copy = new Date();
-            copy.setTime(obj.getTime());
-            return copy;
-        }
+		// Handle Date
+		if (obj instanceof Date)
+		{
+			copy = new Date();
+			copy.setTime(obj.getTime());
+			return copy;
+		}
 
-        // Handle Array
-        if (obj instanceof Array)
-        {
-            copy = [];
-            for (var i = 0, len = obj.length; i < len; i++)
-            {
-                copy[i] = clone(obj[i]);
-            }
-            return copy;
-        }
+		// Handle Array
+		if (obj instanceof Array)
+		{
+			copy = [];
+			for (var i = 0, len = obj.length; i < len; i++)
+			{
+				copy[i] = clone(obj[i]);
+			}
+			return copy;
+		}
 
-        // Handle Object
-        if (obj instanceof Object)
-        {
-            copy = Object.create(obj.__proto__);
-            for (var attr in obj)
-            {
-                if (obj.hasOwnProperty(attr))
-                    copy[attr] = clone(obj[attr]);
-            }
+		// Handle Object
+		if (obj instanceof Object)
+		{
+			copy = Object.create(obj.__proto__);
+			for (var attr in obj)
+			{
+				if (obj.hasOwnProperty(attr))
+					copy[attr] = clone(obj[attr]);
+			}
 
-            return copy;
-        }
+			return copy;
+		}
 
-        throw new Error("Unable to clone object. Type unsupported.");
-    }
-	
+		throw new Error("Unable to clone object. Type unsupported.");
+	}
+
 	/**
 		@class EntityFilter
-		
+
 		Handles a set of entities that will be updated.
 	*/
-	function EntityFilter() 
+	function EntityFilter()
 	{
 		this.componentNames = [];
 		this.entities = [];
 		this.nextEntity = 0;
 		this.isProcessing = false;
 	}
-	
+
 	/**
 		Used to retrieve the first entity in the filter's entity list, and will
 		put the entity filter in a iteration mode (where you can call next).
-		
+
 		Use as following in your processor:
-		
+
 		for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) {
 			...
 		}
-		
+
 		Using this instead of manually looping over the entities array makes it more resistant to entities being removed mid-loop (since the loop index is updated automatically).
-		
+
 		@return {int} The first entity in the entity list or undefined if there are no entities in the list.
 	*/
 	EntityFilter.prototype.first = function() {
@@ -118,13 +118,13 @@ var ECS = (function()
 		this.isProcessing = true;
 		return this.next();
 	};
-	
+
 	/**
-		Used to retrieve the next entity in the filter's entity list. Must be called 
+		Used to retrieve the next entity in the filter's entity list. Must be called
 		after first() has been called and put the filter in iteration mode. This function
 		returns undefined when reaching past the last element, which puts the filter out of
 		iteration mode (so first() needs to be called again before another call to next()).
-		
+
 		@return {int} The next entity in the entity list or undefined if the last has been returned.
 	*/
 	EntityFilter.prototype.next = function() {
@@ -132,42 +132,41 @@ var ECS = (function()
 			this.isProcessing = false;
 			return undefined;
 		}
-		
+
 		return this.entities[this.nextEntity++];
 	};
-	
+
 	/**
 		Iterators require ES6 and is currently replaced with the first() and next() methods. This syntax will replace
 		the above functions once ES6 is officially released and more widely supported.
 	*/
 	//EntityFilter.prototype[Symbol.iterator] = function() {
 	//	var _this = this;
-	//	
+	//
 	//	_this.nextEntity = 0;
 	//	_this.isProcessing = true;
 	//	return {
 	//		/**
 	//			Retrieves the next entity in the filter. Can be used in code as following:
-	//			
+	//
 	//			for (var entity of entityFilter) { ... }
-	//			
+	//
 	//			Using this instead of manually looping over entities has the benefit of being resistant to entities being removed mid-process.
-	//			
+	//
 	//			See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of for more info about browser compatibility.
-	//			
+	//
 	//			@return {object} An object containing two properties {done, value} where value is the next entity to process.
 	//		*/
 	//		next: function() {
 	//			// Implements the iterator protocol specified at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
-	//			if (_this.nextEntity >= _this.entities.length) 
+	//			if (_this.nextEntity >= _this.entities.length)
 	//			{
 	//				_this.nextEntity = 0;
 	//				_this.isProcessing = false;
 	//				return { done: true };
 	//			}
-	//				
+	//
 	//			return { value: _this.entities[_this.nextEntity++] };
-
 	//		}
 	//	};
 	//};
@@ -369,7 +368,7 @@ var ECS = (function()
                 if (filterEntityIndex != -1)
                 {
                     this.entityFilters[i].entities.splice(filterEntityIndex, 1);
-					
+
 					// If we are currently looping through entities in an entity filter, make sure the loop index is set correctly.
 					if (this.entityFilters[i].isProcessing && filterEntityIndex < this.entityFilters[i].nextEntity)
 					{
@@ -636,13 +635,13 @@ var ECS = (function()
     ECS.EntityManager.prototype.unregisterProcessor = function(processor)
     {
         this.processors.splice(this.processors.indexOf(processor));
-        
+
 		var i;
 		for (i = 0; i < processor.emittedMessages.length; i++)
 		{
 			this.removeEntity(processor.emittedMessages[i]);
 		}
-		
+
         delete processor.emittedMessages;
     };
 
@@ -655,16 +654,16 @@ var ECS = (function()
         for (i = 0; i < this.processors.length; i++)
         {
             var processor = this.processors[i];
-			
+
 			// Remove all messages associated with this processor.
 			var k;
 			for (k = 0; k < processor.emittedMessages.length; k++)
 			{
 				this.removeEntity(processor.emittedMessages[k]);
 			}
-			
+
 			processor.emittedMessages = [];
-            
+
 			// Update the processor.
             processor.update();
         }
@@ -686,7 +685,7 @@ var ECS = (function()
 		filter.componentNames = componentNames;
 		filter.entities = this.getEntitiesByComponents(filter.componentNames);
 		this.entityFilters.push(filter);
-		
+
         return filter;
     };
 

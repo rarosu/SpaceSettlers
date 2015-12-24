@@ -13,6 +13,8 @@ function SpaceSettlers()
     this.entityManager.registerComponent('World', World);
     this.entityManager.registerComponent('Chunk', Chunk);
     this.entityManager.registerComponent('InputReceiver', InputReceiver);
+    this.entityManager.registerComponent('Pickable', Pickable);
+    this.entityManager.registerComponent('PickingMessage', PickingMessage);
 
     {
         var cameraEntity = this.entityManager.createEntity(['Transform', 'Camera', 'InputReceiver']);
@@ -23,7 +25,7 @@ function SpaceSettlers()
         camera.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000.0);
     }
 
-    
+
 
     this.renderingProcessor = new RenderingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.renderingProcessor);
@@ -39,6 +41,9 @@ function SpaceSettlers()
 
     this.inputProcessor = new InputProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.inputProcessor);
+
+    this.pickingProcessor = new PickingProcessor(this.entityManager);
+    this.entityManager.registerProcessor(this.pickingProcessor);
 
     {
         this.worldGenerator = new WorldGenerator(this.entityManager);

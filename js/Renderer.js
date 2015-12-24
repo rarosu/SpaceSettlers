@@ -2,6 +2,7 @@ function RenderingProcessor(entityManager)
 {
     this.entityManager = entityManager;
 	this.entityFilter = this.entityManager.createEntityFilter(['Transform', 'Renderable']);
+    this.pickingMessageFilter = this.entityManager.createEntityFilter(['PickingMessage']);
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -31,7 +32,7 @@ function RenderingProcessor(entityManager)
 
 RenderingProcessor.prototype.update = function()
 {
-    for (var entity = this.entityFilter.first(); entity !== undefined; entity = this.entityFilter.next()) 
+    for (var entity = this.entityFilter.first(); entity !== undefined; entity = this.entityFilter.next())
     {
         var transform = this.entityManager.getComponent(entity, 'Transform');
         var renderable = this.entityManager.getComponent(entity, 'Renderable');
@@ -47,6 +48,12 @@ RenderingProcessor.prototype.update = function()
                 renderable.addedToScene = true;
             }
         }
+    }
+
+    for (var message = this.pickingMessageFilter.first(); message !== undefined; message = this.pickingMessageFilter.next()) {
+        var pickingMessage = this.entityManager.getComponent(message, 'PickingMessage');
+        var renderable = this.entityManager.getComponent(pickingMessage.entity, 'Renderable');
+        renderable.mesh.material.color = 0x0000ff;
     }
 
     var cameraEntity = this.entityManager.getEntityByTag('Camera');
