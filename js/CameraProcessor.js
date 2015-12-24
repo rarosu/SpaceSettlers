@@ -12,6 +12,39 @@ CameraProcessor.prototype.update = function()
         var camera = this.entityManager.getComponent(cameraEntity, 'Camera');
         var inputReceiver = this.entityManager.getComponent(cameraEntity, 'InputReceiver');
 
+        // Move the camera look at point.
+        var speed = 3.0;
+        var forward = new THREE.Vector3();
+        var right = new THREE.Vector3();
+        forward.copy(camera.lookAt).sub(camera.camera.position);
+        forward.y = 0;
+        forward.normalize();
+        right.crossVectors(forward, new THREE.Vector3(0, 1, 0));
+
+        console.log(inputReceiver.currentState.keyCodes);
+        //console.log(inputReceiver);
+
+        if (inputReceiver.currentState.keyCodes.indexOf(KEYCODE_W) !== -1) {
+            camera.lookAt.addScaledVector(forward, speed);
+            camera.camera.position.addScaledVector(forward, speed);
+        }
+
+        if (inputReceiver.currentState.keyCodes.indexOf(KEYCODE_S) !== -1) {
+            camera.lookAt.addScaledVector(forward, -speed);
+            camera.camera.position.addScaledVector(forward, -speed);
+        }
+
+        if (inputReceiver.currentState.keyCodes.indexOf(KEYCODE_D) !== -1) {
+            camera.lookAt.addScaledVector(right, speed);
+            camera.camera.position.addScaledVector(right, speed);
+        }
+
+        if (inputReceiver.currentState.keyCodes.indexOf(KEYCODE_A) !== -1) {
+            camera.lookAt.addScaledVector(right, -speed);
+            camera.camera.position.addScaledVector(right, -speed);
+        }
+
+        // Orbiting the camera.
         var dtheta = 0;
         var dphi = 0;
         if (inputReceiver.currentState.buttons.left &&
@@ -26,6 +59,7 @@ CameraProcessor.prototype.update = function()
 
         var offset = new THREE.Vector3();
         offset.copy(camera.camera.position).sub(camera.lookAt);
+        offset.normalize().multiplyScalar(camera.radius);
 
         var theta = Math.atan2(offset.z, offset.x);
         var phi = Math.asin(offset.y / camera.radius);
@@ -47,9 +81,10 @@ CameraProcessor.prototype.update = function()
         offset.y = y;
         offset.z = z;
 
-
         camera.camera.position.copy(camera.lookAt).add(offset);
         camera.camera.lookAt(camera.lookAt);
+
+
 
         transform.position.copy(camera.camera.position);
         transform.orientation.copy(camera.camera.quaternion);

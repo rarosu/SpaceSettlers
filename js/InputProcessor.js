@@ -23,13 +23,14 @@ InputProcessor.prototype.keydown = function(e)
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
     var entityFilter = e.data[2];
-    
-    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
+
+    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next())
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
         var index = inputReceiver.currentState.keyCodes.indexOf(e.keyCode);
         if (index < 0) {
             inputReceiver.currentState.keyCodes.push(e.keyCode);
+            console.log('adding ' + e.keyCode);
         }
     }
 }
@@ -39,13 +40,14 @@ InputProcessor.prototype.keyup = function(e)
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
     var entityFilter = e.data[2];
-    
-    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
+
+    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next())
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
         var index = inputReceiver.currentState.keyCodes.indexOf(e.keyCode);
         if (index >= 0) {
             inputReceiver.currentState.keyCodes.splice(index, 1);
+            console.log('removing ' + e.keyCode);
         }
     }
 }
@@ -55,8 +57,8 @@ InputProcessor.prototype.mousemove = function(e)
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
     var entityFilter = e.data[2];
-    
-    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
+
+    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next())
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
         inputReceiver.currentState.mousePosition.x = e.clientX;
@@ -69,11 +71,11 @@ InputProcessor.prototype.mousedown = function(e)
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
     var entityFilter = e.data[2];
-    
-    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
+
+    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next())
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
-        if(e.which == 1) 
+        if(e.which == 1)
             inputReceiver.currentState.buttons.left = true;
         if(e.which == 3)
             inputReceiver.currentState.buttons.right = true;
@@ -85,11 +87,11 @@ InputProcessor.prototype.mouseup = function(e)
     var inputProcessor = e.data[0];
     var entityManager = e.data[1];
     var entityFilter = e.data[2];
-    
-    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next()) 
+
+    for (var entity = entityFilter.first(); entity !== undefined; entity = entityFilter.next())
     {
         var inputReceiver = entityManager.getComponent(entity, 'InputReceiver');
-        if(e.which == 1) 
+        if(e.which == 1)
             inputReceiver.currentState.buttons.left = false;
         if(e.which == 3)
             inputReceiver.currentState.buttons.right = false;
