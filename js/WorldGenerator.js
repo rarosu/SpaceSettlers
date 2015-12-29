@@ -5,13 +5,15 @@ function WorldGenerator(entityManager)
 
 WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
 {
+    var heightmap = this.generateHeightmap(chunkCount, chunkSize);
+
     var chunks = [];
     for (var y = 0; y < chunkCount.y; y++)
     {
         for (var x = 0; x < chunkCount.x; x++)
         {
             var index = y * chunkCount.x + x;
-            chunks[index] = this.generateChunk(x, y, chunkSize);
+            chunks[index] = this.generateChunk(x, y, chunkSize, chunkCount, heightmap);
         }
     }
 
@@ -22,7 +24,95 @@ WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
     return world;
 }
 
-WorldGenerator.prototype.generateChunk = function(x, y, chunkSize)
+WorldGenerator.prototype.generateHeightmap = function(chunkCount, chunkSize)
+{
+    var worldWidth = chunkCount.x * chunkSize;
+    var worldHeight = chunkCount.y * chunkSize;
+    var heightmap = new Array(worldWidth * worldHeight);
+
+    var permutations = Simplex.randomPermutations();
+    var frequencyScale = 0.01;
+    var amplitudeScale = 4.0;
+    for (var y = 0; y < worldHeight; y++)
+    {
+        for (var x = 0; x < worldWidth; x++)
+        {
+            var height = Math.floor(amplitudeScale * Simplex.simplex2d(x * frequencyScale, y * frequencyScale, permutations));
+            
+            //var height = 0; 
+            var index = y * worldWidth + x;
+            
+            /*
+            var middle = 220;
+            
+             if(index == middle) 
+                height = 2;
+            
+             if(index == middle - 1) 
+                height = 1;
+             if(index == middle + 1) 
+                height = 1;
+             if (index == middle + worldWidth)
+                height = 1;
+             if (index == middle + worldWidth + 1)
+                height = 1;
+             if (index == middle + worldWidth - 1)
+                height = 1;
+             if (index == middle - worldWidth)
+                height = 1;
+             if (index == middle - worldWidth + 1)
+                height = 1;
+             if (index == middle - worldWidth - 1)
+                height = 1;
+            */ 
+    
+
+            
+            var neighborHeight = heightmap[y * worldWidth + (x - 1)];
+            if (x - 1 >= 0)
+            {
+                if (height - neighborHeight == -2)
+                {
+                    height++;
+                }
+            }
+
+            neightborHeight = heightmap[(y - 1) * worldWidth + (x - 1)];
+            if (y - 1 >= 0 && x - 1 >= 0)
+            {
+                if (height - neighborHeight == -2)
+                {
+                    height++;
+                }
+            }
+            
+            neightborHeight = heightmap[(y - 1) * worldWidth + x];
+            if (y - 1 >= 0 && x >= 0)
+            {
+                if (height - neighborHeight == -2)
+                {
+                    height++;
+                }
+            }
+            
+            neightborHeight = heightmap[(y - 1) * worldWidth + (x + 1)];
+            if (y - 1 >= 0 && x + 1 >= 0)
+            {
+               if (height - neighborHeight == -2)
+                {
+                    height++;
+                }
+            }
+             
+
+            heightmap[index] = height;
+        }
+    }
+
+    return heightmap;
+}
+
+WorldGenerator.prototype.generateChunk = function(x, y, chunkSize, chunkCount, heightmap)
 {
     var chunkEntity = this.entityManager.createEntity(['Transform', 'Renderable', 'Chunk', 'Pickable']);
     var chunk = this.entityManager.getComponent(chunkEntity, 'Chunk');
@@ -35,7 +125,7 @@ WorldGenerator.prototype.generateChunk = function(x, y, chunkSize)
     chunk.heights = new Array(chunkSize * chunkSize);
     chunk.slopes = new Array(chunkSize * chunkSize);
 
-    this.generateHeights(chunk, chunkSize);
+    this.assignHeights(chunk, x, y, chunkSize, chunkCount, heightmap);
     this.generateSlopes(chunk, chunkSize);
     this.generateVertices(chunkSize, chunk, renderable);
 
@@ -48,23 +138,71 @@ WorldGenerator.prototype.generateChunk = function(x, y, chunkSize)
     return chunk;
 }
 
-WorldGenerator.prototype.generateHeights = function(chunkComponent, chunkSize)
+WorldGenerator.prototype.assignHeights = function(chunkComponent, chunkX, chunkY, chunkSize, chunkCount, heightmap)
 {
     for(var y = 0; y < chunkSize; y++)
     {
        for(var x = 0; x < chunkSize; x++)
        {
            var index = y * chunkSize + x;
-           if (Math.random() < 0.1)
-           {
-               chunkComponent.heights[index] = 1;
-           }
-           else
-           {
-               chunkComponent.heights[index] = 0;
-           }
+           //var globalIndex = (chunkY * chunkCount.x + chunkX) * (chunkSize * chunkSize) + index;
+           var globalX = chunkX * chunkSize + x;
+           var globalY = chunkY * chunkSize + y;
+           var globalIndex = globalY * chunkCount.x * chunkSize + globalX;
+           //var chunkIndex = y * chunkSize + x;
+
+           chunkComponent.heights[index] = heightmap[globalIndex];
+       }
+    }
+};
+
+WorldGenerator.prototype.generateHeights = function(chunkX, chunkY, chunkComponent, chunkSize)
+{
+    /*
+    for(var y = 0; y < chunkSize; y++)
+    {
+       for(var x = 0; x < chunkSize; x++)
+       {
+           var globalX = chunkX * chunkSize + x;
+           var globalY = chunkY * chunkSize + y;
+           var height = amplitudeScale * Simplex.simplex2d(globalX * frequencyScale, globalY * frequencyScale, this.permutations);
+           var index = y * chunkSize + x;
+
+           
+           
+           chunkComponent.heights[index] = height;
        }
    }
+    */ 
+   
+   var middle = 120;
+    for(var y = 0; y < chunkSize; y++)
+    {
+       for(var x = 0; x < chunkSize; x++)
+       {
+            var index = y * chunkSize + x;
+            chunkComponent.heights[index] = 0;
+             if(index == middle) 
+                chunkComponent.heights[index] = 2;
+             if(index == middle - 1) 
+                chunkComponent.heights[index] = 1;
+             if(index == middle + 1) 
+                chunkComponent.heights[index] = 1;
+             if (index == middle + chunkSize)
+                chunkComponent.heights[index] = 1;
+             if (index == middle + chunkSize + 1)
+                chunkComponent.heights[index] = 1;
+             if (index == middle + chunkSize - 1)
+                chunkComponent.heights[index] = 1;
+             if (index == middle - chunkSize)
+                chunkComponent.heights[index] = 1;
+             if (index == middle - chunkSize + 1)
+                chunkComponent.heights[index] = 1;
+             if (index == middle - chunkSize - 1)
+                chunkComponent.heights[index] = 1;
+       }
+    }
+   
 }
 
 WorldGenerator.prototype.generateSlopes = function(chunkComponent, chunkSize)
@@ -80,9 +218,6 @@ WorldGenerator.prototype.generateSlopes = function(chunkComponent, chunkSize)
 
 WorldGenerator.prototype.generateSlope = function(chunkComponent, chunkSize, x, y)
 {
-    if (x == 2 && y == 1)
-        var t = 0;
-
     var index = y * chunkSize + x;
     for (var offsetY = -1; offsetY <= 1; offsetY++)
     {
@@ -94,9 +229,6 @@ WorldGenerator.prototype.generateSlope = function(chunkComponent, chunkSize, x, 
             var neighborIndex = (y + offsetY) * chunkSize + (x + offsetX);
             if (neighborIndex < 0 || neighborIndex >= chunkSize * chunkSize)
                 continue;
-
-            if (offsetX == -1 && offsetY == 0)
-                var t = 0;
 
             var neighborHeight = chunkComponent.heights[neighborIndex];
             var height = chunkComponent.heights[index];
