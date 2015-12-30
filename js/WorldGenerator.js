@@ -47,95 +47,7 @@ WorldGenerator.prototype.generateHeightmap = function(chunkCount, chunkSize)
     
     //this.correctHeights(chunkCount, chunkSize, heightmap, 0); 
     
-    for (var y = 0; y < worldHeight; y++)
-    {
-        for (var x = 0; x < worldWidth; x++)
-        {
-             var index = y * worldWidth + x;
-             var height = heightmap[index];
-           
-            
-            var neighborHeight = heightmap[y * worldWidth + (x - 1)];
-            if (x - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            
-            var neighborHeight = heightmap[y * worldWidth + (x + 1)];
-            if (x + 1 < worldWidth)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            
-            neightborHeight = heightmap[(y - 1) * worldWidth + x];
-            if (y - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            /*
-            neightborHeight = heightmap[(y + 1) * worldWidth + x];
-            if (y + 1 < worldHeight)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            
-            
-            neightborHeight = heightmap[(y + 1) * worldWidth + (x + 1)];
-            if (y + 1 < worldHeight && x + 1 < worldWidth)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            
-            
-            neightborHeight = heightmap[(y - 1) * worldWidth + (x - 1)];
-            if (y - 1 >= 0 && x - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            
-            neightborHeight = heightmap[(y + 1) * worldWidth + (x - 1)];
-            if (y + 1 < worldHeight && x - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            
-            neightborHeight = heightmap[(y - 1) * worldWidth + (x + 1)];
-            if (y - 1 >= 0 && x + 1 < worldWidth)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-            */
-             
-        }
-    }
-
-
-
-
+ 
     // DEBUG ASSERT
     /*
     for (var y = 0; y < worldHeight; y++)
@@ -181,9 +93,8 @@ WorldGenerator.prototype.correctHeights = function(chunkCount, chunkSize, height
         for (var x = 0; x < worldWidth; x++)
         {
              var index = y * worldWidth + x;
-            var height = heightmap[index];
+             var height = heightmap[index];
            
-            
             var neighborHeight = heightmap[y * worldWidth + (x - 1)];
             if (x - 1 >= 0)
             {
@@ -193,7 +104,7 @@ WorldGenerator.prototype.correctHeights = function(chunkCount, chunkSize, height
                 }
             }
             
-            var neighborHeight = heightmap[y * worldWidth + (x + 1)];
+            neighborHeight = heightmap[y * worldWidth + (x + 1)];
             if (x + 1 < worldWidth)
             {
                 if (height - neighborHeight <= -2)
@@ -252,25 +163,57 @@ WorldGenerator.prototype.correctHeights = function(chunkCount, chunkSize, height
             neightborHeight = heightmap[(y - 1) * worldWidth + (x + 1)];
             if (y - 1 >= 0 && x + 1 < worldWidth)
             {
-                if (height - neighborHeight <= -2)
+               if (height - neighborHeight <= -2)
                 {
                     height = neighborHeight - 1;
                 }
             }
             
-             
-
+            
             heightmap[index] = height;
         }
     }
+
     
-    
+    /*
     if(rec < 20) {
         rec++; 
         this.correctHeights(chunkCount, chunkSize, heightmap, rec); 
     }
-     
-   
+    */  
+
+
+    // DEBUG ASSERT
+    for (var y = 0; y < worldHeight; y++)
+    {
+        for (var x = 0; x < worldWidth; x++)
+        {
+            var index = y * worldWidth + x;
+            for (var offsetY = -1; offsetY <= 1; offsetY++)
+            {
+                for (var offsetX = -1; offsetX <= 1; offsetX++)
+                {
+                    if (offsetX == 0 && offsetY == 0)
+                        continue;
+                    var neighborX = x + offsetX;
+                    var neighborY = y + offsetY;
+                    var neighborIndex = neighborY * worldWidth + neighborX;
+                    if (neighborX < 0 || neighborX >= worldWidth)
+                        continue;
+                    if (neighborY < 0 || neighborY >= worldHeight)
+                        continue;
+
+                    var neighborHeight = heightmap[neighborIndex];
+                    var height = heightmap[index];
+                    if (Math.abs(height - neighborHeight) > 1)
+                        console.log("Error: Two neighboring tiles have more than 2 in height difference");
+                }
+            }
+        }
+    }
+    // /DEBUG
+
+    return heightmap;
 }
 
 WorldGenerator.prototype.generateSlopemap = function(chunkCount, chunkSize, heightmap)
@@ -374,6 +317,7 @@ WorldGenerator.prototype.generateChunk = function(x, y, chunkSize, chunkCount, h
 
     this.assignHeights(chunk, x, y, chunkSize, chunkCount, heightmap);
     this.assignSlopes(chunk, x, y, chunkSize, chunkCount, slopemap);
+
     this.generateVertices(chunkSize, chunk, renderable);
 
     transform.position = new THREE.Vector3(x * chunkSize, 0, y * chunkSize);
