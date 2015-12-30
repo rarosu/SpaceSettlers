@@ -5,7 +5,7 @@ function WorldGenerator(entityManager)
 
 WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
 {
-    var heightmap = this.generateHeightmap(chunkCount, chunkSize);
+    var heightmap = this.generateTestHillHeightmap(chunkCount, chunkSize);
     var slopemap = this.generateSlopemap(chunkCount, chunkSize, heightmap);
 
     var chunks = [];
@@ -24,6 +24,49 @@ WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
 
     return world;
 }
+
+WorldGenerator.prototype.generateTestHillHeightmap = function(chunkCount, chunkSize)
+{
+    var worldWidth = chunkCount.x * chunkSize;
+    var worldHeight = chunkCount.y * chunkSize;
+    var heightmap = new Array(worldWidth * worldHeight);
+
+    for (var y = 0; y < worldHeight; ++y)
+    {
+        for (var x = 0; x < worldWidth; ++x)
+        {
+            heightmap[y * worldWidth + x] = 0;
+        }
+    }
+
+    function setHeightIfGreater(x, y, height)
+    {
+        var index = y * worldWidth + x;
+        heightmap[index] = Math.max(heightmap[index], height);
+    }
+
+    function generateHill(x, y)
+    {
+        setHeightIfGreater(x, y, 2);
+        setHeightIfGreater(x + 1, y, 1);
+        setHeightIfGreater(x - 1, y, 1);
+        setHeightIfGreater(x, y + 1, 1);
+        setHeightIfGreater(x + 1, y + 1, 1);
+        setHeightIfGreater(x - 1, y + 1, 1);
+        setHeightIfGreater(x, y - 1, 1);
+        setHeightIfGreater(x + 1, y - 1, 1);
+        setHeightIfGreater(x - 1, y - 1, 1);
+    }
+
+    var centerX = worldWidth / 2;
+    var centerY = worldHeight / 2;
+    generateHill(centerX, centerY);
+    generateHill(centerX - 1, centerY + 1);
+    generateHill(centerX + 1, centerY - 1);
+    
+
+    return heightmap;
+};
 
 WorldGenerator.prototype.generateHeightmap = function(chunkCount, chunkSize)
 {
