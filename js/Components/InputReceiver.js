@@ -7,6 +7,11 @@ function InputState()
     };
 
     this.keyCodes = new Array();
+    this.wheel =
+    {
+        wheelY : 0
+    }; 
+    
 }
 
 var InputReceiver =
