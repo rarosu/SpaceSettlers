@@ -1,532 +1,350 @@
+
 function WorldGenerator(entityManager)
 {
-    this.entityManager = entityManager;
+	this.entityManager = entityManager;
+	this.MIN_HEIGHT = -255;
+	this.MAX_HEIGHT = 255;
+	
+	this.SLOPE_FLAT = 0x0;
+	this.SLOPE_NW = 0x1;
+	this.SLOPE_NE = 0x2;
+	this.SLOPE_SW = 0x4;
+	this.SLOPE_SE = 0x8;
 }
 
+/**
+	Create a world entity and a set of chunk entities with procedurally generated terrain.
+	
+	@param {Object} chunkCount - An object {x, y} specifying how many chunks to generate.
+	@param {Number} chunkSize - The side length in tiles of a square chunk.
+	@return {Number} - A new world entity.
+*/
 WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
 {
-    var heightmap = this.generateTestHillHeightmap(chunkCount, chunkSize);
-    var slopemap = this.generateSlopemap(chunkCount, chunkSize, heightmap);
-
-    var chunks = [];
-    for (var y = 0; y < chunkCount.y; y++)
-    {
-        for (var x = 0; x < chunkCount.x; x++)
-        {
-            var index = y * chunkCount.x + x;
-            chunks[index] = this.generateChunk(x, y, chunkSize, chunkCount, heightmap, slopemap);
-        }
-    }
-
-    var world = this.entityManager.createEntity(['World']);
-    var worldComponent = this.entityManager.getComponent(world, 'World');
-    worldComponent.chunks = chunks;
-
-    return world;
-}
-
-WorldGenerator.prototype.generateTestHillHeightmap = function(chunkCount, chunkSize)
-{
-    var worldWidth = chunkCount.x * chunkSize;
-    var worldHeight = chunkCount.y * chunkSize;
-    var heightmap = new Array(worldWidth * worldHeight);
-
-    for (var y = 0; y < worldHeight; ++y)
-    {
-        for (var x = 0; x < worldWidth; ++x)
-        {
-            heightmap[y * worldWidth + x] = 0;
-        }
-    }
-
-    function setHeightIfGreater(x, y, height)
-    {
-        var index = y * worldWidth + x;
-        heightmap[index] = Math.max(heightmap[index], height);
-    }
-
-    function generateHill(x, y)
-    {
-        setHeightIfGreater(x, y, 2);
-        setHeightIfGreater(x + 1, y, 1);
-        setHeightIfGreater(x - 1, y, 1);
-        setHeightIfGreater(x, y + 1, 1);
-        setHeightIfGreater(x + 1, y + 1, 1);
-        setHeightIfGreater(x - 1, y + 1, 1);
-        setHeightIfGreater(x, y - 1, 1);
-        setHeightIfGreater(x + 1, y - 1, 1);
-        setHeightIfGreater(x - 1, y - 1, 1);
-    }
-
-    var centerX = worldWidth / 2;
-    var centerY = worldHeight / 2;
-    generateHill(centerX, centerY);
-    generateHill(centerX - 1, centerY + 1);
-    generateHill(centerX + 1, centerY - 1);
-    
-
-    return heightmap;
+	var heightmap = this.generateHeightmap(chunkCount, chunkSize);
+	var chunks = this.generateChunks(heightmap, chunkCount, chunkSize);
 };
 
+WorldGenerator.prototype.generateHeight = function(x, y, permutations)
+{
+    var height = 0;
+    var octaveCount = 3;
+    var frequencyScale = 0.01;
+    var amplitudeScale = 10.0;
+    for (var i = 0; i < octaveCount; i++)
+    {
+        height += amplitudeScale * Simplex.simplex2d(x * frequencyScale, y * frequencyScale, permutations);
+        frequencyScale *= 2;
+        amplitudeScale /= 2;
+    }
+
+    height = Math.floor(height);
+    height = Math.max(this.MIN_HEIGHT, Math.min(this.MAX_HEIGHT, height));
+
+    return height;
+};
+
+/**
+	Generate a height value for all tile corners and ensure that no neighboring corners differ more than 1 in height.
+	
+	@param {Object} chunkCount - An object {x, y} specifying how many chunks to generate.
+	@param {Number} chunkSize - The side length in tiles of a square chunk.
+	@return {Array} An array of heights for all tile corners.
+*/
 WorldGenerator.prototype.generateHeightmap = function(chunkCount, chunkSize)
 {
-    var worldWidth = chunkCount.x * chunkSize;
-    var worldHeight = chunkCount.y * chunkSize;
-    var heightmap = new Array(worldWidth * worldHeight);
-
-    var permutations = Simplex.randomPermutations();
-    var frequencyScale = 0.01;
-    var amplitudeScale = 12.0;
-    for (var y = 0; y < worldHeight; y++)
-    {
-        for (var x = 0; x < worldWidth; x++)
-        {
-            var height = Math.floor(amplitudeScale * Simplex.simplex2d(x * frequencyScale, y * frequencyScale, permutations));
-            var index = y * worldWidth + x;
-
-            heightmap[index] = height;
-        }
-    }
-    
-    //this.correctHeights(chunkCount, chunkSize, heightmap, 0); 
-    
- 
-    // DEBUG ASSERT
-    /*
-    for (var y = 0; y < worldHeight; y++)
-    {
-        for (var x = 0; x < worldWidth; x++)
-        {
-            var index = y * worldWidth + x;
-            for (var offsetY = -1; offsetY <= 1; offsetY++)
-            {
-                for (var offsetX = -1; offsetX <= 1; offsetX++)
-                {
-                    if (offsetX == 0 && offsetY == 0)
-                        continue;
-                    var neighborX = x + offsetX;
-                    var neighborY = y + offsetY;
-                    var neighborIndex = neighborY * worldWidth + neighborX;
-                    if (neighborX < 0 || neighborX >= worldWidth)
-                        continue;
-                    if (neighborY < 0 || neighborY >= worldHeight)
-                        continue;
-
-                    var neighborHeight = heightmap[neighborIndex];
-                    var height = heightmap[index];
-                    if (Math.abs(height - neighborHeight) > 1)
-                        console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-        }
-    }
-    */ 
-    // /DEBUG
-
-    return heightmap;
-}
-
-WorldGenerator.prototype.correctHeights = function(chunkCount, chunkSize, heightmap, rec) 
-{
-    var worldWidth = chunkCount.x * chunkSize;
-    var worldHeight = chunkCount.y * chunkSize;
-    
-    for (var y = 0; y < worldHeight; y++)
-    {
-        for (var x = 0; x < worldWidth; x++)
-        {
-             var index = y * worldWidth + x;
-             var height = heightmap[index];
-           
-            var neighborHeight = heightmap[y * worldWidth + (x - 1)];
-            if (x - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            neighborHeight = heightmap[y * worldWidth + (x + 1)];
-            if (x + 1 < worldWidth)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            neightborHeight = heightmap[(y - 1) * worldWidth + x];
-            if (y - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            neightborHeight = heightmap[(y + 1) * worldWidth + x];
-            if (y + 1 < worldHeight)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            
-            neightborHeight = heightmap[(y + 1) * worldWidth + (x + 1)];
-            if (y + 1 < worldHeight && x + 1 < worldWidth)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            
-            neightborHeight = heightmap[(y - 1) * worldWidth + (x - 1)];
-            if (y - 1 >= 0 && x - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            neightborHeight = heightmap[(y + 1) * worldWidth + (x - 1)];
-            if (y + 1 < worldHeight && x - 1 >= 0)
-            {
-                if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            neightborHeight = heightmap[(y - 1) * worldWidth + (x + 1)];
-            if (y - 1 >= 0 && x + 1 < worldWidth)
-            {
-               if (height - neighborHeight <= -2)
-                {
-                    height = neighborHeight - 1;
-                }
-            }
-            
-            
-            heightmap[index] = height;
-        }
-    }
-
-    
-    /*
-    if(rec < 20) {
-        rec++; 
-        this.correctHeights(chunkCount, chunkSize, heightmap, rec); 
-    }
-    */  
-
-
-    // DEBUG ASSERT
-    for (var y = 0; y < worldHeight; y++)
-    {
-        for (var x = 0; x < worldWidth; x++)
-        {
-            var index = y * worldWidth + x;
-            for (var offsetY = -1; offsetY <= 1; offsetY++)
-            {
-                for (var offsetX = -1; offsetX <= 1; offsetX++)
-                {
-                    if (offsetX == 0 && offsetY == 0)
-                        continue;
-                    var neighborX = x + offsetX;
-                    var neighborY = y + offsetY;
-                    var neighborIndex = neighborY * worldWidth + neighborX;
-                    if (neighborX < 0 || neighborX >= worldWidth)
-                        continue;
-                    if (neighborY < 0 || neighborY >= worldHeight)
-                        continue;
-
-                    var neighborHeight = heightmap[neighborIndex];
-                    var height = heightmap[index];
-                    if (Math.abs(height - neighborHeight) > 1)
-                        console.log("Error: Two neighboring tiles have more than 2 in height difference");
-                }
-            }
-        }
-    }
-    // /DEBUG
-
-    return heightmap;
-}
-
-WorldGenerator.prototype.generateSlopemap = function(chunkCount, chunkSize, heightmap)
-{
-    var worldWidth = chunkCount.x * chunkSize;
-    var worldHeight = chunkCount.y * chunkSize;
-    var slopemap = new Array(worldWidth * worldHeight);
-
-    for (var y = 0; y < worldHeight; y++)
-    {
-        for (var x = 0; x < worldWidth; x++)
-        {
-            var index = y * worldWidth + x;
-            for (var offsetY = -1; offsetY <= 1; offsetY++)
-            {
-                for (var offsetX = -1; offsetX <= 1; offsetX++)
-                {
-                    if (offsetX == 0 && offsetY == 0)
-                        continue;
-
-                    var neighborX = x + offsetX;
-                    var neighborY = y + offsetY;
-                    var neighborIndex = neighborY * worldWidth + neighborX;
-                    if (neighborX < 0 || neighborX >= worldWidth)
-                        continue;
-                    if (neighborY < 0 || neighborY >= worldHeight)
-                        continue;
-
-                    var neighborHeight = heightmap[neighborIndex];
-                    var height = heightmap[index];
-                    var slope = slopemap[index];
-
-                    if (neighborHeight > height)
-                    {
-                        if (offsetX == -1 && offsetY == -1)
-                        {
-                            slope |= 0x1;
-                        }
-
-                        if (offsetX == 0 && offsetY == -1)
-                        {
-                            slope |= 0x1;
-                            slope |= 0x2;
-                        }
-
-                        if (offsetX == 1 && offsetY == -1)
-                        {
-                            slope |= 0x2;
-                        }
-
-                        if (offsetX == 1 && offsetY == 0)
-                        {
-                            slope |= 0x2;
-                            slope |= 0x4;
-                        }
-
-                        if (offsetX == 1 && offsetY == 1)
-                        {
-                            slope |= 0x4;
-                        }
-
-                        if (offsetX == 0 && offsetY == 1)
-                        {
-                            slope |= 0x4;
-                            slope |= 0x8;
-                        }
-
-                        if (offsetX == -1 && offsetY == 1)
-                        {
-                            slope |= 0x8;
-                        }
-
-                        if (offsetX == -1 && offsetY == 0)
-                        {
-                            slope |= 0x1;
-                            slope |= 0x8;
-                        }
-                    }
-
-                    slopemap[index] = slope;
-                }
-            }
-        }
-    }
-
-    return slopemap;
+	// The number of tile corners in the world in both directions.
+	var worldWidth = chunkCount.x * chunkSize + 1;
+	var worldHeight = chunkCount.y * chunkSize + 1;
+	
+	// Create initial storage.
+	var heightmap = new Array(worldWidth * worldHeight);
+	
+	// Procedurally generate heights using simplex noise.
+	var permutations = Simplex.randomPermutations();
+    //var frequencyScale = 0.02;
+    //var amplitudeScale = 12.0;
+	for (var y = 0; y < worldHeight; y++)
+	{
+		for (var x = 0; x < worldWidth; x++)
+		{
+		    var height = this.generateHeight(x, y, permutations);
+			//var height = Math.floor(amplitudeScale * Simplex.simplex2d(x * frequencyScale, y * frequencyScale, permutations));
+			//height = Math.max(this.MIN_HEIGHT, Math.min(this.MAX_HEIGHT, height));
+			
+			var index = y * worldWidth + x;
+			heightmap[index] = height;
+		}
+	}
+	
+	// Fix the heightmap to ensure that no two neighboring corners differ with more than 1 height.
+	//this.correctHeights(heightmap, worldWidth, worldHeight);
+	
+	return heightmap;
 };
 
-WorldGenerator.prototype.generateChunk = function(x, y, chunkSize, chunkCount, heightmap, slopemap)
+/**
+	Ensure that no two neighboring tile corners (in horizontal and vertical direction, but not necessarily diagonally) 
+	in the heightmap have more than 1 height difference. This is a requirement for the terrain. Returns nothing, 
+	manipulates the heightmap in place.
+	
+	@param {Array} An array of heights for all tile corners.
+	@param {worldWidth} The number of tile corners in x-direction.
+	@param {worldHeight} The number of tile corners in y-direction.
+*/
+WorldGenerator.prototype.correctHeights = function(heightmap, worldWidth, worldHeight)
 {
-    var chunkEntity = this.entityManager.createEntity(['Transform', 'Renderable', 'Chunk', 'Pickable']);
+	// For every corner, check the horizontal and vertical neighbors and lower the corner if it is too high.
+	// Check top and left corners relative to the current corner first. This ensures only traversed (with final height) corners are compared against.
+	for (var y = 0; y < worldHeight; y++)
+	{
+		for (var x = 0; x < worldWidth; x++)
+		{
+			var lowest = this.MAX_HEIGHT;
+			
+			// Check previously traversed corners only.
+			if (x != 0)
+			{
+				var neighborIndex = y * worldWidth + (x - 1);
+				if (heightmap[neighborIndex] < lowest)
+				{
+					lowest = heightmap[neighborIndex];
+				}
+			}
+			
+			if (y != 0)
+			{
+				var neighborIndex = (y - 1) * worldWidth + x;
+				if (heightmap[neighborIndex] < lowest)
+				{
+					lowest = heightmap[neighborIndex];
+				}
+			}
+			
+			// Is the height difference larger than 1? If so, lower this corner.
+			var index = y * worldWidth + x;
+			if (heightmap[index] >= lowest + 2)
+			{
+				heightmap[index] = lowest + 1;
+			}
+		}
+	}
+	
+	// Check bottom and right corners.
+	for (var y = worldHeight - 1; y >= 0; y--)
+	{
+		for (var x = worldWidth - 1; x >= 0; x--)
+		{
+			var lowest = this.MAX_HEIGHT;
+			if (x != worldWidth - 1)
+			{
+				var neighborIndex = y * worldWidth + (x + 1);
+				if (heightmap[neighborIndex] < lowest)
+				{
+					lowest = heightmap[neighborIndex];
+				}
+			}
+			
+			if (y != worldHeight - 1)
+			{
+				var neighborIndex = (y + 1) * worldWidth + x;
+				if (heightmap[neighborIndex] < lowest)
+				{
+					lowest = heightmap[neighborIndex];
+				}
+			}
+			
+			// Is the height difference larger than 1? If so, lower this corner.
+			var index = y * worldWidth + x;
+			if (heightmap[index] >= lowest + 2)
+			{
+				heightmap[index] = lowest + 1;
+			}
+		}
+	}
+};
+
+/**
+	Generate an array of chunk entities.
+	
+	@param {Array} heightmap - An array of heights for all tile corners.
+	@param {Object} chunkCount - An object {x, y} specifying how many chunks to generate.
+	@param {Number} chunkSize - The side length in tiles of a square chunk.
+	@return {Array} - An array of chunk entities.
+*/
+WorldGenerator.prototype.generateChunks = function(heightmap, chunkCount, chunkSize)
+{
+	var chunks = new Array(chunkCount.x * chunkCount.y);
+	for (var y = 0; y < chunkCount.y; y++)
+	{
+		for (var x = 0; x < chunkCount.x; x++)
+		{
+			var index = y * chunkCount.x + x;
+			chunks[index] = this.generateChunk(heightmap, chunkCount, chunkSize, x, y);
+		}
+	}
+	
+	return chunks;
+};
+
+/**
+	Generate a single chunk entity.
+	
+	@param {Array} heightmap - An array of heights for all tile corners.
+	@param {Number} chunkSize - The side length in tiles of a square chunk.
+	@param {Object} chunkCount - An object {x, y} specifying how many chunks to generate.
+	@param {Number} chunkX - The index of this chunk in x-direction.
+	@param {Number} chunkY - The index of this chunk in y-direction.
+	@return {Number} - The chunk entity.
+*/
+WorldGenerator.prototype.generateChunk = function(heightmap, chunkCount, chunkSize, chunkX, chunkY)
+{
+	var chunkEntity = this.entityManager.createEntity(['Transform', 'Renderable', 'Chunk', 'Pickable']);
     var chunk = this.entityManager.getComponent(chunkEntity, 'Chunk');
     var transform = this.entityManager.getComponent(chunkEntity, 'Transform');
     var renderable = this.entityManager.getComponent(chunkEntity, 'Renderable');
     var pickable = this.entityManager.getComponent(chunkEntity, 'Pickable');
 
-    pickable.x = 4;
+    transform.position = new THREE.Vector3(chunkX * chunkSize, 0, chunkY * chunkSize);
 
-    chunk.heights = new Array(chunkSize * chunkSize);
-    chunk.slopes = new Array(chunkSize * chunkSize);
-
-    this.assignHeights(chunk, x, y, chunkSize, chunkCount, heightmap);
-    this.assignSlopes(chunk, x, y, chunkSize, chunkCount, slopemap);
-
-    this.generateVertices(chunkSize, chunk, renderable);
-
-    transform.position = new THREE.Vector3(x * chunkSize, 0, y * chunkSize);
-
+	this.generateVertices(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable);
+	
+	// DEBUG: Outline the chunk geometry with a green grid.
     var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
     var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
     edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
-
+	// /DEBUG
+	
     return chunk;
-}
-
-WorldGenerator.prototype.assignHeights = function(chunkComponent, chunkX, chunkY, chunkSize, chunkCount, heightmap)
-{
-    for(var y = 0; y < chunkSize; y++)
-    {
-        for(var x = 0; x < chunkSize; x++)
-        {
-            var index = y * chunkSize + x;
-            var globalX = chunkX * chunkSize + x;
-            var globalY = chunkY * chunkSize + y;
-            var globalIndex = globalY * chunkCount.x * chunkSize + globalX;
-
-            chunkComponent.heights[index] = heightmap[globalIndex];
-        }
-    }
 };
 
-WorldGenerator.prototype.assignSlopes = function(chunkComponent, chunkX, chunkY, chunkSize, chunkCount, slopemap)
+/**
+	Generate a vertex buffer for a chunk.
+	
+	@param {Array} heightmap - An array of heights for all tile corners.
+	@param {Object} chunkCount - 
+	@param {Object} renderable - The renderable component of the chunk.
+*/
+WorldGenerator.prototype.generateVertices = function(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable)
 {
-    for(var y = 0; y < chunkSize; y++)
-    {
-        for(var x = 0; x < chunkSize; x++)
-        {
-            var index = y * chunkSize + x;
-            var globalX = chunkX * chunkSize + x;
-            var globalY = chunkY * chunkSize + y;
-            var globalIndex = globalY * chunkCount.x * chunkSize + globalX;
-
-            chunkComponent.slopes[index] = slopemap[globalIndex];
-        }
-    }
-};
-
-WorldGenerator.prototype.generateSlopes = function(chunkComponent, chunkSize)
-{
-    for (var y = 0; y < chunkSize; y++)
-    {
-       for (var x = 0; x < chunkSize; x++)
-       {
-           this.generateSlope(chunkComponent, chunkSize, x, y);
-       }
-   }
-}
-
-WorldGenerator.prototype.generateSlope = function(chunkComponent, chunkSize, x, y)
-{
-    var index = y * chunkSize + x;
-    for (var offsetY = -1; offsetY <= 1; offsetY++)
-    {
-        for (var offsetX = -1; offsetX <= 1; offsetX++)
-        {
-            if (offsetX == 0 && offsetY == 0)
-                continue;
-
-            var neighborIndex = (y + offsetY) * chunkSize + (x + offsetX);
-            if (neighborIndex < 0 || neighborIndex >= chunkSize * chunkSize)
-                continue;
-
-            var neighborHeight = chunkComponent.heights[neighborIndex];
-            var height = chunkComponent.heights[index];
-            var slope = chunkComponent.slopes[index];
-            if (neighborHeight > height)
-            {
-                if (offsetX == -1 && offsetY == -1)
-                {
-                    slope |= 0x1;
-                }
-
-                if (offsetX == 0 && offsetY == -1)
-                {
-                    slope |= 0x1;
-                    slope |= 0x2;
-                }
-
-                if (offsetX == 1 && offsetY == -1)
-                {
-                    slope |= 0x2;
-                }
-
-                if (offsetX == 1 && offsetY == 0)
-                {
-                    slope |= 0x2;
-                    slope |= 0x4;
-                }
-
-                if (offsetX == 1 && offsetY == 1)
-                {
-                    slope |= 0x4;
-                }
-
-                if (offsetX == 0 && offsetY == 1)
-                {
-                    slope |= 0x4;
-                    slope |= 0x8;
-                }
-
-                if (offsetX == -1 && offsetY == 1)
-                {
-                    slope |= 0x8;
-                }
-
-                if (offsetX == -1 && offsetY == 0)
-                {
-                    slope |= 0x1;
-                    slope |= 0x8;
-                }
-            }
-
-            chunkComponent.slopes[index] = slope;
-        }
-    }
-
-}
-
-WorldGenerator.prototype.generateVertices = function(chunkSize, chunkComponent, renderableComponent)
-{
-    var vertices = new Float32Array(chunkSize * chunkSize * 6 * 3);
-    for (var y = 0; y < chunkSize; y++)
+	var worldWidth = chunkCount.x * chunkSize + 1;
+	var vertices = new Float32Array(chunkSize * chunkSize * 6 * 3);
+	for (var y = 0; y < chunkSize; y++)
     {
         for (var x = 0; x < chunkSize; x++)
         {
-            var tileIndex = x + y * chunkSize;
-            var height = chunkComponent.heights[tileIndex];
-            var slope = chunkComponent.slopes[tileIndex];
+			var globalX = chunkX * chunkSize + x;
+			var globalY = chunkY * chunkSize + y;
+			var slope = this.getSlope(heightmap, worldWidth, globalX, globalY);
+			
+			// TODO: Determine what order the vertices should have depending on the slope.
 
+            // Use this layout by default.
+		    // +----+
+		    // |  / |
+		    // | /  |
+		    // +----+
+
+            // If either NE or SW is raised, use this layout!
+		    // +----*
+		    // | \  |
+		    // |  \ |
+		    // *----+
+
+		    var nw = heightmap[globalY * worldWidth + globalX];
+		    var ne = heightmap[globalY * worldWidth + globalX + 1];
+		    var sw = heightmap[(globalY + 1) * worldWidth + globalX];
+		    var se = heightmap[(globalY + 1) * worldWidth + globalX + 1];
+
+            var tileIndex = y * chunkSize + x;
             var index = tileIndex * 6 * 3;
-            vertices[index] = x;
-            vertices[index+1] = height + (slope & 0x1);
-            vertices[index+2] = y;
+			if (slope == this.SLOPE_NE || slope == this.SLOPE_SW)
+			{
+                vertices[index] = x;
+                vertices[index+1] = nw;
+                vertices[index+2] = y;
 
-            vertices[index+3] = x+1;
-            vertices[index+4] = height + ((slope & 0x2) >> 1);
-            vertices[index+5] = y;
+                vertices[index+3] = x;
+                vertices[index+4] = sw;
+                vertices[index+5] = y+1;
 
-            vertices[index+6] = x+1;
-            vertices[index+7] = height + ((slope & 0x4) >> 2);
-            vertices[index+8] = y+1;
+                vertices[index+6] = x+1;
+                vertices[index+7] = se;
+                vertices[index+8] = y+1;
 
 
-            vertices[index+9] = x+1;
-            vertices[index+10] = height + ((slope & 0x4) >> 2);
-            vertices[index+11] = y+1;
+                vertices[index+9] = x+1;
+                vertices[index+10] = se;
+                vertices[index+11] = y+1;
 
-            vertices[index+12] = x;
-            vertices[index+13] = height + ((slope & 0x8) >> 3);
-            vertices[index+14] = y+1;
+                vertices[index+12] = x+1;
+                vertices[index+13] = ne;
+                vertices[index+14] = y;
 
-            vertices[index+15] = x;
-            vertices[index+16] = height + (slope & 0x1);
-            vertices[index+17] = y;
-        }
-    }
+                vertices[index+15] = x;
+                vertices[index+16] = nw;
+                vertices[index+17] = y;
+			}
+			else
+			{
+                vertices[index] = x;
+                vertices[index+1] = nw;
+                vertices[index+2] = y;
 
-    var geometry = new THREE.BufferGeometry();
+                vertices[index+3] = x;
+                vertices[index+4] = sw;
+                vertices[index+5] = y+1;
+
+                vertices[index+6] = x+1;
+                vertices[index+7] = ne;
+                vertices[index+8] = y;
+
+
+                vertices[index+9] = x;
+                vertices[index+10] = sw;
+                vertices[index+11] = y+1;
+
+                vertices[index+12] = x+1;
+                vertices[index+13] = se;
+                vertices[index+14] = y+1;
+
+                vertices[index+15] = x+1;
+                vertices[index+16] = ne;
+                vertices[index+17] = y;
+			}
+		}
+	}
+
+	var geometry = new THREE.BufferGeometry();
     geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
     var material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide });
 
-    renderableComponent.mesh = new THREE.Mesh(geometry, material);
-}
+    renderable.mesh = new THREE.Mesh(geometry, material);
+};
+
+/**
+	Get the slope of a tile. The returned value can be masked using the SLOPE_* constants to determine the type of slope.
+	
+	@param {Array} heightmap - An array of heights for all tile corners.
+	@param {Number} worldWidth - The number of tile corners in horizontal direction (one more than the number of tiles).
+	@param {Number} x - The horizontal index of the tile (tile index, not tile corner index).
+	@param {Number} y - The vertical index of the tile (tile index, not tile corner index).
+	@return {Number} - A slope value that can be masked using the SLOPE_* constants.
+*/
+WorldGenerator.prototype.getSlope = function(heightmap, worldWidth, x, y)
+
+{
+	var nw = heightmap[y * worldWidth + x];
+	var ne = heightmap[y * worldWidth + (x + 1)];
+	var sw = heightmap[(y + 1) * worldWidth + x];
+	var se = heightmap[(y + 1) * worldWidth + (x + 1)];
+	var min = Math.min(Math.min(nw, ne), Math.min(sw, se));
+	
+	var slope = this.SLOPE_FLAT;
+	if (nw !== min) slope |= this.SLOPE_NW;
+	if (ne !== min) slope |= this.SLOPE_NE;
+	if (sw !== min) slope |= this.SLOPE_SW;
+	if (se !== min) slope |= this.SLOPE_SE;
+	
+	return slope;
+};

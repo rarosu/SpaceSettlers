@@ -1,5 +1,4 @@
 var Chunk =
 {
-    heights: [],
-    slopes: []
+	
 };
