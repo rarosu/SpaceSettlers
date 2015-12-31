@@ -30,7 +30,7 @@ WorldGenerator.prototype.generateHeight = function(x, y, permutations)
     var height = 0;
     var octaveCount = 3;
     var frequencyScale = 0.01;
-    var amplitudeScale = 10.0;
+    var amplitudeScale = 5.0;
     for (var i = 0; i < octaveCount; i++)
     {
         height += amplitudeScale * Simplex.simplex2d(x * frequencyScale, y * frequencyScale, permutations);
@@ -210,9 +210,9 @@ WorldGenerator.prototype.generateChunk = function(heightmap, chunkCount, chunkSi
 	this.generateVertices(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable);
 	
 	// DEBUG: Outline the chunk geometry with a green grid.
-    var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
-    var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
-    edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
+    //var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
+    //var edgesRenderable = this.entityManager.getComponent(edges, 'Renderable');
+    //edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
 	// /DEBUG
 	
     return chunk;
@@ -226,10 +226,28 @@ WorldGenerator.prototype.generateChunk = function(heightmap, chunkCount, chunkSi
 	@param {Object} renderable - The renderable component of the chunk.
 */
 WorldGenerator.prototype.generateVertices = function(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable)
+{	
+    var positions = this.generatePositions(heightmap, chunkCount, chunkSize, chunkX, chunkY);
+    var normals = this.generateNormals(heightmap, chunkCount, chunkSize, chunkX, chunkY);
+
+	var geometry = new THREE.BufferGeometry();
+    geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+    geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+    var material = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide });
+    //var material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide });
+
+    renderable.mesh = new THREE.Mesh(geometry, material);
+};
+
+/**
+    Generate the vertex positions of the heightmap.
+*/
+WorldGenerator.prototype.generatePositions = function(heightmap, chunkCount, chunkSize, chunkX, chunkY)
 {
+    var positions = new Float32Array(chunkSize * chunkSize * 6 * 3);
+
 	var worldWidth = chunkCount.x * chunkSize + 1;
-	var vertices = new Float32Array(chunkSize * chunkSize * 6 * 3);
-	for (var y = 0; y < chunkSize; y++)
+    for (var y = 0; y < chunkSize; y++)
     {
         for (var x = 0; x < chunkSize; x++)
         {
@@ -237,8 +255,6 @@ WorldGenerator.prototype.generateVertices = function(heightmap, chunkCount, chun
 			var globalY = chunkY * chunkSize + y;
 			var slope = this.getSlope(heightmap, worldWidth, globalX, globalY);
 			
-			// TODO: Determine what order the vertices should have depending on the slope.
-
             // Use this layout by default.
 		    // +----+
 		    // |  / |
@@ -260,66 +276,177 @@ WorldGenerator.prototype.generateVertices = function(heightmap, chunkCount, chun
             var index = tileIndex * 6 * 3;
 			if (slope == this.SLOPE_NE || slope == this.SLOPE_SW)
 			{
-                vertices[index] = x;
-                vertices[index+1] = nw;
-                vertices[index+2] = y;
+                positions[index] = x;
+                positions[index+1] = nw;
+                positions[index+2] = y;
 
-                vertices[index+3] = x;
-                vertices[index+4] = sw;
-                vertices[index+5] = y+1;
+                positions[index+3] = x;
+                positions[index+4] = sw;
+                positions[index+5] = y+1;
 
-                vertices[index+6] = x+1;
-                vertices[index+7] = se;
-                vertices[index+8] = y+1;
+                positions[index+6] = x+1;
+                positions[index+7] = se;
+                positions[index+8] = y+1;
 
 
-                vertices[index+9] = x+1;
-                vertices[index+10] = se;
-                vertices[index+11] = y+1;
+                positions[index+9] = x+1;
+                positions[index+10] = se;
+                positions[index+11] = y+1;
 
-                vertices[index+12] = x+1;
-                vertices[index+13] = ne;
-                vertices[index+14] = y;
+                positions[index+12] = x+1;
+                positions[index+13] = ne;
+                positions[index+14] = y;
 
-                vertices[index+15] = x;
-                vertices[index+16] = nw;
-                vertices[index+17] = y;
+                positions[index+15] = x;
+                positions[index+16] = nw;
+                positions[index+17] = y;
 			}
 			else
 			{
-                vertices[index] = x;
-                vertices[index+1] = nw;
-                vertices[index+2] = y;
+                positions[index] = x;
+                positions[index+1] = nw;
+                positions[index+2] = y;
 
-                vertices[index+3] = x;
-                vertices[index+4] = sw;
-                vertices[index+5] = y+1;
+                positions[index+3] = x;
+                positions[index+4] = sw;
+                positions[index+5] = y+1;
 
-                vertices[index+6] = x+1;
-                vertices[index+7] = ne;
-                vertices[index+8] = y;
+                positions[index+6] = x+1;
+                positions[index+7] = ne;
+                positions[index+8] = y;
 
 
-                vertices[index+9] = x;
-                vertices[index+10] = sw;
-                vertices[index+11] = y+1;
+                positions[index+9] = x;
+                positions[index+10] = sw;
+                positions[index+11] = y+1;
 
-                vertices[index+12] = x+1;
-                vertices[index+13] = se;
-                vertices[index+14] = y+1;
+                positions[index+12] = x+1;
+                positions[index+13] = se;
+                positions[index+14] = y+1;
 
-                vertices[index+15] = x+1;
-                vertices[index+16] = ne;
-                vertices[index+17] = y;
+                positions[index+15] = x+1;
+                positions[index+16] = ne;
+                positions[index+17] = y;
 			}
 		}
 	}
 
-	var geometry = new THREE.BufferGeometry();
-    geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-    var material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide });
+    return positions;
+};
 
-    renderable.mesh = new THREE.Mesh(geometry, material);
+/**
+    Generate the vertex normals of the heightmap.
+*/
+WorldGenerator.prototype.generateNormals = function(heightmap, chunkCount, chunkSize, chunkX, chunkY)
+{
+	var normals = new Float32Array(chunkSize * chunkSize * 6 * 3);
+
+	var worldWidth = chunkCount.x * chunkSize + 1;
+    for (var y = 0; y < chunkSize; y++)
+    {
+        for (var x = 0; x < chunkSize; x++)
+        {
+            var globalX = chunkX * chunkSize + x;
+			var globalY = chunkY * chunkSize + y;
+			var slope = this.getSlope(heightmap, worldWidth, globalX, globalY);
+
+			// Use this layout by default.
+		    // +----+
+		    // |  / |
+		    // | /  |
+		    // +----+
+
+            // If either NE or SW is raised, use this layout!
+		    // +----*
+		    // | \  |
+		    // |  \ |
+		    // *----+
+
+		    var nw = heightmap[globalY * worldWidth + globalX];
+		    var ne = heightmap[globalY * worldWidth + globalX + 1];
+		    var sw = heightmap[(globalY + 1) * worldWidth + globalX];
+		    var se = heightmap[(globalY + 1) * worldWidth + globalX + 1];
+
+            var tileIndex = y * chunkSize + x;
+            var index = tileIndex * 6 * 3;
+			if (slope == this.SLOPE_NE || slope == this.SLOPE_SW)
+			{
+                var p1 = new THREE.Vector3(x, nw, y);
+                var p2 = new THREE.Vector3(x, sw, y+1);
+                var p3 = new THREE.Vector3(x+1, se, y+1);
+                var n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                normals[index] = n.x;
+                normals[index + 1] = n.y;
+                normals[index + 2] = n.z;
+                
+                normals[index + 3] = n.x;
+                normals[index + 4] = n.y;
+                normals[index + 5] = n.z;
+                
+                normals[index + 6] = n.x;
+                normals[index + 7] = n.y;
+                normals[index + 8] = n.z;
+
+
+                p1 = new THREE.Vector3(x+1, se, y+1);
+                p2 = new THREE.Vector3(x+1, ne, y);
+                p3 = new THREE.Vector3(x, nw, y);
+                n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                normals[index + 9] = n.x;
+                normals[index + 10] = n.y;
+                normals[index + 11] = n.z;
+                
+                normals[index + 12] = n.x;
+                normals[index + 13] = n.y;
+                normals[index + 14] = n.z;
+                
+                normals[index + 15] = n.x;
+                normals[index + 16] = n.y;
+                normals[index + 17] = n.z;
+			}
+			else
+			{
+                var p1 = new THREE.Vector3(x, nw, y);
+                var p2 = new THREE.Vector3(x, sw, y+1);
+                var p3 = new THREE.Vector3(x+1, ne, y);
+                var n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                normals[index] = n.x;
+                normals[index + 1] = n.y;
+                normals[index + 2] = n.z;
+                
+                normals[index + 3] = n.x;
+                normals[index + 4] = n.y;
+                normals[index + 5] = n.z;
+                
+                normals[index + 6] = n.x;
+                normals[index + 7] = n.y;
+                normals[index + 8] = n.z;
+
+
+                p1 = new THREE.Vector3(x, sw, y+1);
+                p2 = new THREE.Vector3(x+1, se, y+1);
+                p3 = new THREE.Vector3(x+1, ne, y);
+                n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                normals[index + 9] = n.x;
+                normals[index + 10] = n.y;
+                normals[index + 11] = n.z;
+                
+                normals[index + 12] = n.x;
+                normals[index + 13] = n.y;
+                normals[index + 14] = n.z;
+                
+                normals[index + 15] = n.x;
+                normals[index + 16] = n.y;
+                normals[index + 17] = n.z;
+			}
+        }
+    }
+
+	return normals;
 };
 
 /**
