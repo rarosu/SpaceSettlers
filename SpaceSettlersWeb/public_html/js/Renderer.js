@@ -63,11 +63,13 @@ RenderingProcessor.prototype.update = function()
         }
     }
 
+    /*
     for (var message = this.pickingMessageFilter.first(); message !== undefined; message = this.pickingMessageFilter.next()) {
         var pickingMessage = this.entityManager.getComponent(message, 'PickingMessage');
         var renderable = this.entityManager.getComponent(pickingMessage.entity, 'Renderable');
         renderable.mesh.material.color = 0x0000ff;
     }
+    */
 
     var cameraEntity = this.entityManager.getEntityByTag('Camera');
     var camera = this.entityManager.getComponent(cameraEntity, 'Camera');

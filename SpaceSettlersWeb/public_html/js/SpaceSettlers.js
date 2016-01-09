@@ -15,6 +15,7 @@ function SpaceSettlers()
     this.entityManager.registerComponent('InputReceiver', InputReceiver);
     this.entityManager.registerComponent('Pickable', Pickable);
     this.entityManager.registerComponent('PickingMessage', PickingMessage);
+    this.entityManager.registerComponent('TilePickedMessage', TilePickedMessage);
 
     {
         var cameraEntity = this.entityManager.createEntity(['Transform', 'Camera', 'InputReceiver']);
@@ -42,6 +43,9 @@ function SpaceSettlers()
     this.inputProcessor = new InputProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.inputProcessor);
 
+    this.tilePickingProcessor = new TilePickingProcessor(this.entityManager);
+    this.entityManager.registerProcessor(this.tilePickingProcessor);
+    
     this.pickingProcessor = new PickingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.pickingProcessor);
     

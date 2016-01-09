@@ -42,6 +42,7 @@ PickingProcessor.prototype.emitPickingMessage = function(screenX, screenY, picki
             
             picking.entity = entity;
             picking.pickingEvent = pickingEvent;
+            picking.intersectionPoint = intersections[0].point;
         }
     }
 };

@@ -204,15 +204,16 @@ WorldGenerator.prototype.generateChunks = function(heightmap, chunkCount, chunkS
 */
 WorldGenerator.prototype.generateChunk = function(heightmap, chunkCount, chunkSize, chunkX, chunkY)
 {
-	var chunkEntity = this.entityManager.createEntity(['Transform', 'Renderable', 'Chunk', 'Pickable']);
+    var chunkEntity = this.entityManager.createEntity(['Transform', 'Renderable', 'Chunk', 'Pickable']);
     var chunk = this.entityManager.getComponent(chunkEntity, 'Chunk');
     var transform = this.entityManager.getComponent(chunkEntity, 'Transform');
     var renderable = this.entityManager.getComponent(chunkEntity, 'Renderable');
     var pickable = this.entityManager.getComponent(chunkEntity, 'Pickable');
-
+    
     transform.position = new THREE.Vector3(chunkX * chunkSize, 0, chunkY * chunkSize);
+    pickable.pickingEvent = PickingEvent.CLICK | PickingEvent.HOVER;
 
-	this.generateVertices(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable);
+    this.generateVertices(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable);
 	
 	// DEBUG: Outline the chunk geometry with a green grid.
     //var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
@@ -220,7 +221,7 @@ WorldGenerator.prototype.generateChunk = function(heightmap, chunkCount, chunkSi
     //edgesRenderable.mesh = new THREE.WireframeHelper( renderable.mesh, 0x00ff00 );
 	// /DEBUG
 	
-    return chunk;
+    return chunkEntity;
 };
 
 /**
