@@ -44,6 +44,9 @@ function SpaceSettlers()
 
     this.pickingProcessor = new PickingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.pickingProcessor);
+    
+    this.buildProcessor = new BuildProcessor(this.entityManager);
+    this.entityManager.registerProcessor(this.buildProcessor);
 
     {
         this.worldGenerator = new WorldGenerator(this.entityManager);
