@@ -12,9 +12,18 @@ function RenderingProcessor(entityManager)
     this.ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(this.ambientLight);
 
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    this.directionalLight.position.set(-1, -1, 0).normalize();
-    this.scene.add(this.directionalLight);
+    this.directionalLights = [];
+
+    this.directionalLights.push(new THREE.DirectionalLight(0xffffff, 0.25));
+    this.directionalLights[0].position.set(-1, -1, 0).normalize();
+
+    this.directionalLights.push(new THREE.DirectionalLight(0xffffff, 0.25));
+    this.directionalLights[1].position.set(1, -1, 0).normalize();
+
+    for (var i = 0; i < this.directionalLights.length; i++)
+    {
+        this.scene.add(this.directionalLights[i]);
+    }
 
     // Setup window-resizing.
     var _this = this;
