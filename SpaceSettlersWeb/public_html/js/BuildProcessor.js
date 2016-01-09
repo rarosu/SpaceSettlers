@@ -27,6 +27,9 @@ BuildProcessor.prototype.update = function()
             case PickingEvent.CLICK:
             {
                 if(this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
+                    
+                    var selectedEntity = this.entityManager.getEntityByTag('Selected'); 
+                    var selected =  this.entityManager.getComponent(selectedEntity, 'Selected');
     
                     var object = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);
                     var transform = this.entityManager.getComponent(object, 'Transform');
