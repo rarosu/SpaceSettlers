@@ -15,6 +15,7 @@ function SpaceSettlers()
     this.entityManager.registerComponent('InputReceiver', InputReceiver);
     this.entityManager.registerComponent('Pickable', Pickable);
     this.entityManager.registerComponent('PickingMessage', PickingMessage);
+    this.entityManager.registerComponent('Selected', Selected);
 
     {
         var cameraEntity = this.entityManager.createEntity(['Transform', 'Camera', 'InputReceiver']);
@@ -47,10 +48,21 @@ function SpaceSettlers()
     
     this.buildProcessor = new BuildProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.buildProcessor);
+    
+    
 
     {
         this.worldGenerator = new WorldGenerator(this.entityManager);
         this.world = this.worldGenerator.generateWorld({x: 8, y: 8}, 16);
+    }
+    
+    {
+        this.selectedObject = this.entityManager.createEntity(['Transform', 'Selected']); 
+        var transform = this.entityManager.getComponent(this.selectedObject, 'Transform'); 
+        var selected = this.entityManager.getComponent(this.selectedObject, 'Selected'); 
+        transform.position = new THREE.Vector3(10, 0, 10); 
+        selected.sideLength = 1; 
+        this.buildProcessor.placeObject(); 
     }
 
 
