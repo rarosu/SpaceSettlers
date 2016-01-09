@@ -58,14 +58,17 @@ function SpaceSettlers()
         this.world = this.worldGenerator.generateWorld({x: 8, y: 8}, 16);
     }
     
+    {
+        this.selectedObject = this.entityManager.createEntity(['Selected']);        
+        var selected = this.entityManager.getComponent(this.selectedObject, 'Selected');        
+        selected.sideLength = 1;        
+        this.entityManager.addTag(this.selectedObject, 'Selected');
+    }
+    
     this.buildProcessor = new BuildProcessor(this.entityManager, this.worldGenerator);
     this.entityManager.registerProcessor(this.buildProcessor);
     
-    {
-        this.selectedObject = this.entityManager.createEntity(['Transform', 'Selected']);        
-        var selected = this.entityManager.getComponent(this.selectedObject, 'Selected');        
-        selected.sideLength = 1;        
-    }
+    
 
 
     {

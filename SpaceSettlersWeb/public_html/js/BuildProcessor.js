@@ -2,6 +2,19 @@ function BuildProcessor(entityManager, worldGenerator) {
     this.entityManager = entityManager;
     this.worldGenerator = worldGenerator; 
     this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
+    
+    var selectedEntity = this.entityManager.getEntityByTag('Selected'); 
+    var selected =  this.entityManager.getComponent(selectedEntity, 'Selected'); 
+    
+    this.ghostObject = this.entityManager.createEntity(['Transform', 'Renderable']);
+    var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
+    var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');                
+    transform.position = new THREE.Vector3(0, 0, 0);
+
+    var geometry = new THREE.BoxGeometry(selected.sideLength, 1, selected.sideLength);
+    var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
+    renderable.mesh = new THREE.Mesh(geometry, material);
+    
 }
 
 BuildProcessor.prototype.update = function() 
@@ -14,11 +27,12 @@ BuildProcessor.prototype.update = function()
             case PickingEvent.CLICK:
             {
                 if(this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
+    
                     var object = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);
                     var transform = this.entityManager.getComponent(object, 'Transform');
                     var renderable = this.entityManager.getComponent(object, 'Renderable');
                     var inventory = this.entityManager.getComponent(object, 'Inventory');
-                    transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ, tilePicked.tileY);
+                    transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ, tilePicked.tileY + selected.sideLength / 2);
 
                     inventory.currentLoad = 3000;
                     inventory.maxLoad = 3000;
@@ -30,8 +44,22 @@ BuildProcessor.prototype.update = function()
             } break;
             
             case PickingEvent.HOVER: 
-            {
-                // TODO: Highlight the tile in some fashion.                
+            {             
+                var selectedEntity = this.entityManager.getEntityByTag('Selected'); 
+                var selected =  this.entityManager.getComponent(selectedEntity, 'Selected'); 
+    
+                var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
+                var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');                
+                transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ, tilePicked.tileY + selected.sideLength / 2);
+                
+                if(this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {                  
+                    var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
+                    renderable.mesh.material = material; 
+                }
+                else {
+                    var material = new THREE.MeshLambertMaterial({color: 0xff0000});
+                    renderable.mesh.material = material; 
+                }
             } break;
         }   
     }
@@ -39,12 +67,11 @@ BuildProcessor.prototype.update = function()
 
 BuildProcessor.prototype.canPlaceObject = function(tileX, tileY)
 {
-    var selectedFilter = this.entityManager.createEntityFilter(['Selected', 'Transform']);
     var worldEntity = this.entityManager.getEntityByTag('World'); 
+    var selectedEntity = this.entityManager.getEntityByTag('Selected'); 
     
-    var entity = selectedFilter.first(); 
-    if(entity !== undefined) {
-        var selected = this.entityManager.getComponent(entity, 'Selected'); 
+    if(selectedEntity !== undefined) {
+        var selected = this.entityManager.getComponent(selectedEntity, 'Selected'); 
         var world = this.entityManager.getComponent(worldEntity, 'World');
         
         var slope = this.checkSlope(world, tileX, tileY, tileX + selected.sideLength, tileY + selected.sideLength); 
