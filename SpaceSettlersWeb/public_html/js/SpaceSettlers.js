@@ -43,16 +43,15 @@ function SpaceSettlers()
 
     this.inputProcessor = new InputProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.inputProcessor);
+    
+    this.buildProcessor = new BuildProcessor(this.entityManager);
+    this.entityManager.registerProcessor(this.buildProcessor);
 
     this.tilePickingProcessor = new TilePickingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.tilePickingProcessor);
     
     this.pickingProcessor = new PickingProcessor(this.entityManager);
     this.entityManager.registerProcessor(this.pickingProcessor);
-    
-    this.buildProcessor = new BuildProcessor(this.entityManager);
-    this.entityManager.registerProcessor(this.buildProcessor);
-    
     
 
     {

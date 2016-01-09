@@ -1,10 +1,26 @@
 function BuildProcessor(entityManager) {
     this.entityManager = entityManager;
+    this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
 }
 
 BuildProcessor.prototype.update = function() 
 {
-    
+    for (var tilePickedMessage = this.tilePickedMessageFilter.first(); tilePickedMessage !== undefined; tilePickedMessage = this.tilePickedMessageFilter.next())
+    {
+        var tilePicked = this.entityManager.getComponent(tilePickedMessage, 'TilePickedMessage');
+        switch (tilePicked.pickingEvent)
+        {
+            case PickingEvent.CLICK:
+            {
+                // TODO: Place the selected object at (tilePicked.tileX, tilePicked.tileY), if in build mode.
+            } break;
+            
+            case PickingEvent.HOVER: 
+            {
+                // TODO: Highlight the tile in some fashion.
+            } break;
+        }   
+    }
 }; 
 
 BuildProcessor.prototype.placeObject = function()
