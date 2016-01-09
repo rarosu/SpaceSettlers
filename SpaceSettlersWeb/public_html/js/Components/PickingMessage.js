@@ -1,3 +1,4 @@
 var PickingMessage = {
-    entity: null
+    entity: null,
+    pickingEvent: 0
 };
