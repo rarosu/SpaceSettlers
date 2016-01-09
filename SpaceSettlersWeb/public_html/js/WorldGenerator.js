@@ -23,6 +23,11 @@ WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
 {
 	var heightmap = this.generateHeightmap(chunkCount, chunkSize);
 	var chunks = this.generateChunks(heightmap, chunkCount, chunkSize);
+        
+        var worldEntity = this.entityManager.createEntity(['World']);
+        var world = this.entityManager.getComponent(worldEntity, 'World');
+        world.chunks = chunks;
+        this.entityManager.addTag(worldEntity, 'World');
 };
 
 WorldGenerator.prototype.generateHeight = function(x, y, permutations)
