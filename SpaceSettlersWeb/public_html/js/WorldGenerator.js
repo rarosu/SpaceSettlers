@@ -27,6 +27,8 @@ WorldGenerator.prototype.generateWorld = function(chunkCount, chunkSize)
         var worldEntity = this.entityManager.createEntity(['World']);
         var world = this.entityManager.getComponent(worldEntity, 'World');
         world.chunks = chunks;
+        world.heightmap = heightmap; 
+        world.worldWidth = chunkCount.x * chunkSize + 1;
         this.entityManager.addTag(worldEntity, 'World');
 };
 

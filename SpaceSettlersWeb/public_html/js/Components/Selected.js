@@ -1,4 +1,5 @@
 var Selected = 
 {
-    sideLength: 1
+    sideLength: 1, 
+    objectType: "Station"
 }; 

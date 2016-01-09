@@ -17,12 +17,15 @@ TilePickingProcessor.prototype.update = function()
         if (chunk !== undefined)
         {
             var dx = picking.intersectionPoint.x - firstChunkTransform.position.x;
+            var dy = picking.intersectionPoint.y - firstChunkTransform.position.y;
             var dz = picking.intersectionPoint.z - firstChunkTransform.position.z;
 
             var tilePickedMessage = this.entityManager.createMessage(this, ['TilePickedMessage']);
             var tilePicked = this.entityManager.getComponent(tilePickedMessage, 'TilePickedMessage');
             tilePicked.tileX = Math.floor(dx);
             tilePicked.tileY = Math.floor(dz);
+            tilePicked.tileZ = Math.floor(dy);
+            
             tilePicked.pickingEvent = picking.pickingEvent;
         }
     }

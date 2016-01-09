@@ -1,4 +1,6 @@
 var World =
 {
-    chunks: []
+    chunks: [], 
+    heightmap: [], 
+    worldWidth: 0
 };

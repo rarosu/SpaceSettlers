@@ -1,5 +1,6 @@
-function BuildProcessor(entityManager) {
+function BuildProcessor(entityManager, worldGenerator) {
     this.entityManager = entityManager;
+    this.worldGenerator = worldGenerator; 
     this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
 }
 
@@ -12,38 +13,58 @@ BuildProcessor.prototype.update = function()
         {
             case PickingEvent.CLICK:
             {
-                // TODO: Place the selected object at (tilePicked.tileX, tilePicked.tileY), if in build mode.
+                if(this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
+                    var object = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);
+                    var transform = this.entityManager.getComponent(object, 'Transform');
+                    var renderable = this.entityManager.getComponent(object, 'Renderable');
+                    var inventory = this.entityManager.getComponent(object, 'Inventory');
+                    transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ, tilePicked.tileY);
+
+                    inventory.currentLoad = 3000;
+                    inventory.maxLoad = 3000;
+
+                    var geometry = new THREE.BoxGeometry(1, 1, 1);
+                    var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
+                    renderable.mesh = new THREE.Mesh(geometry, material);
+                }                    
             } break;
             
             case PickingEvent.HOVER: 
             {
-                // TODO: Highlight the tile in some fashion.
+                // TODO: Highlight the tile in some fashion.                
             } break;
         }   
     }
 }; 
 
-BuildProcessor.prototype.placeObject = function()
+BuildProcessor.prototype.canPlaceObject = function(tileX, tileY)
 {
-    this.selectedFilter = this.entityManager.createEntityFilter(['Selected', 'Transform']);
-    var entity = this.selectedFilter.first(); 
+    var selectedFilter = this.entityManager.createEntityFilter(['Selected', 'Transform']);
+    var worldEntity = this.entityManager.getEntityByTag('World'); 
+    
+    var entity = selectedFilter.first(); 
     if(entity !== undefined) {
-        var selectedTransform = this.entityManager.getComponent(entity, 'Transform'); 
         var selected = this.entityManager.getComponent(entity, 'Selected'); 
+        var world = this.entityManager.getComponent(worldEntity, 'World');
         
-        this.chunkFilter = this.entityManager.createEntityFilter(['Transform', 'Renderable', 'Chunk', 'Pickable']);
-        for (var chunkEntity = this.chunkFilter.first(); chunkEntity !== undefined; chunkEntity = this.chunkFilter.next()) 
-        {
-            var transform = this.entityManager.getComponent(chunkEntity, 'Transform'); 
-            var chunk = this.entityManager.getComponent(chunkEntity, 'Chunk'); 
-            // check if selected object is within this chunk 
-            if(selectedTransform.position.x >= transform.position.x 
-                    && selectedTransform.position.z >= transform.position.z
-                    && selectedTransform.position.x < transform.position.x + chunk.size
-                    && selectedTransform.position.z < transform.position.z + chunk.size)
-            {
-                
-            }
-        }
+        var slope = this.checkSlope(world, tileX, tileY, tileX + selected.sideLength, tileY + selected.sideLength); 
+        if(slope === 0)
+            return true; 
+        else 
+            return false; 
     }                            
+};
+
+BuildProcessor.prototype.checkSlope = function(world, tileX, tileY, tileEndX, tileEndY)
+{
+    var slope = 0; 
+    for(var y = tileY; y < tileEndY; y++) {
+        for(var x = tileX; x < tileEndX; x++) {
+            slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, x, y); 
+            if(slope !== 0)
+                return slope; 
+        }
+    }
+    
+    return slope; 
 }; 
