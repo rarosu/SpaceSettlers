@@ -1,7 +1,7 @@
 function VehicleProcessor(entityManager, ticker)
 {
     this.entityManager = entityManager;
-	this.entityFilter = this.entityManager.createEntityFilter(['Transform', 'Vehicle']);
+    this.entityFilter = this.entityManager.createEntityFilter(['Transform', 'Vehicle']);
     this.ticker = ticker;
 }
 

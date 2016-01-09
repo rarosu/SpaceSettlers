@@ -212,8 +212,9 @@ WorldGenerator.prototype.generateChunk = function(heightmap, chunkCount, chunkSi
     
     transform.position = new THREE.Vector3(chunkX * chunkSize, 0, chunkY * chunkSize);
     pickable.pickingEvent = PickingEvent.CLICK | PickingEvent.HOVER;
-
-    this.generateVertices(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable);
+    chunk.size = chunkSize;
+	
+	this.generateVertices(heightmap, chunkCount, chunkSize, chunkX, chunkY, renderable);
 	
 	// DEBUG: Outline the chunk geometry with a green grid.
     //var edges = this.entityManager.createEntity(['Transform', 'Renderable']);
