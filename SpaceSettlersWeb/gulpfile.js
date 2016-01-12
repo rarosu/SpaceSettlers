@@ -3,6 +3,8 @@ var gulp = require('gulp');
 gulp.task('copy-dependencies', function() {
     gulp.src('node_modules/requirejs/require.js')
         .pipe(gulp.dest('public_html/js/External'));
+    gulp.src('node_modules/three/three.min.js')
+        .pipe(gulp.dest('public_html/js/External'));
 });
 
 gulp.task('dev', ['copy-dependencies'], function() {

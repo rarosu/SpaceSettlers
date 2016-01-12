@@ -9,6 +9,7 @@
   "contributors": [],
   "dependencies": {
     "gulp": "^3.9.0",
-    "requirejs": "^2.1.22"
+    "requirejs": "^2.1.22",
+    "three": "^0.73.0"
   }
 }

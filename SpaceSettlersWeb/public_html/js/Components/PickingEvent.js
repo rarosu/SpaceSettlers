@@ -2,7 +2,8 @@ define(function(require) {
     "use strict";
     
     return {
-        sideLength: 1, 
-        objectType: "Station"
+        NONE: 0x0,
+        CLICK: 0x1,
+        HOVER: 0x2 
     };
 });
