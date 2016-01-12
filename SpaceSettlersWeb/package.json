@@ -1,0 +1,14 @@
+{
+  "name": "SpaceSettlers",
+  "version": "0.0.1",
+  "keywords": [
+    "game",
+    "strategy"
+  ],
+  "author": "Lars Woxberg and Thomas Woxberg",
+  "contributors": [],
+  "dependencies": {
+    "gulp": "^3.9.0",
+    "requirejs": "^2.1.22"
+  }
+}
