@@ -1,12 +1,15 @@
 var gulp = require('gulp');
 
 gulp.task('copy-dependencies', function() {
-    gulp.src('node_modules/requirejs/require.js')
-        .pipe(gulp.dest('public_html/js/External'));
-    gulp.src('node_modules/three/three.min.js')
-        .pipe(gulp.dest('public_html/js/External'));
-    gulp.src('node_modules/jquery/dist/jquery.min.js')
-            .pipe(gulp.dest('public_html/js/External'));
+    var sources = ['node_modules/requirejs/require.js',
+        'node_modules/three/three.min.js',
+        'node_modules/jquery/dist/jquery.min.js'];
+    var destination = 'public_html/js/External';
+    
+    for (var i = 0; i< sources.length; i++) {
+        console.log("Copying '" + sources[i] + "' to '" + destination + "'");
+        gulp.src(sources[i]).pipe(gulp.dest(destination));
+    }
 });
 
 gulp.task('dev', ['copy-dependencies'], function() {
