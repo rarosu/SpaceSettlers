@@ -3,3 +3,4 @@
 *.InfText
 global-acl.xml
 /SpaceSettlersWeb/nbproject/private/
+/SpaceSettlersWeb/node_modules/
