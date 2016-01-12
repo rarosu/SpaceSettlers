@@ -5,6 +5,8 @@ gulp.task('copy-dependencies', function() {
         .pipe(gulp.dest('public_html/js/External'));
     gulp.src('node_modules/three/three.min.js')
         .pipe(gulp.dest('public_html/js/External'));
+    gulp.src('node_modules/jquery/dist/jquery.min.js')
+            .pipe(gulp.dest('public_html/js/External'));
 });
 
 gulp.task('dev', ['copy-dependencies'], function() {

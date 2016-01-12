@@ -1,14 +1,25 @@
 {
-  "name": "SpaceSettlers",
+  "name": "space_settlers",
   "version": "0.0.1",
+  "description": "A single-player strategy game with focus on production and infrastructure and the goal of expanding through space.",
   "keywords": [
     "game",
     "strategy"
   ],
-  "author": "Lars Woxberg and Thomas Woxberg",
-  "contributors": [],
+  "license": "MIT",
+  "contributors": [
+      {
+          "name": "Lars Woxberg",
+          "email": "lars.woxberg@gmail.com"
+      },
+      {
+          "name": "Thomas Woxberg"
+      }
+  ],
+  "repository": "https://github.com/rarosu/SpaceSettlers.git",
   "dependencies": {
     "gulp": "^3.9.0",
+    "jquery": "^2.2.0",
     "requirejs": "^2.1.22",
     "three": "^0.73.0"
   }
