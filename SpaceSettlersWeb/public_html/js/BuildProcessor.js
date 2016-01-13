@@ -35,7 +35,7 @@ BuildProcessor.prototype.update = function()
                     var transform = this.entityManager.getComponent(object, 'Transform');
                     var renderable = this.entityManager.getComponent(object, 'Renderable');
                     var inventory = this.entityManager.getComponent(object, 'Inventory');
-                    transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ, tilePicked.tileY + selected.sideLength / 2);
+                    transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ + selected.sideLength / 2, tilePicked.tileY + selected.sideLength / 2);
 
                     inventory.currentLoad = 3000;
                     inventory.maxLoad = 3000;
@@ -53,7 +53,7 @@ BuildProcessor.prototype.update = function()
     
                 var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
                 var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');                
-                transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ, tilePicked.tileY + selected.sideLength / 2);
+                transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ + selected.sideLength / 2, tilePicked.tileY + selected.sideLength / 2);
                 
                 if(this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {                  
                     var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
