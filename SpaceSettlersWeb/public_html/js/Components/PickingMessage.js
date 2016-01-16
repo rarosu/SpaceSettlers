@@ -1,5 +1,12 @@
-var PickingMessage = {
-    entity: null,
-    pickingEvent: 0,
-    intersectionPoint: new THREE.Vector3()
-};
+define(function(require) {
+    "use strict";
+    
+    var THREE = require('THREE');
+    var PickingEvent = require('Components/PickingEvent');
+    
+    return {
+        entity: null,
+        pickingEvent: PickingEvent.NONE,
+        intersectionPoint: new THREE.Vector3()
+    };
+});

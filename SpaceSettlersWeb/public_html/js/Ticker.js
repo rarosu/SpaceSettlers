@@ -1,52 +1,60 @@
-/**
- * Provides requestAnimationFrame in a cross browser way.
- */
-window.requestAnimFrame = (function() {
-    return  window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
-              return window.setTimeout(callback, 1000/60);
-            };
-})();
-
-/**
- * Ticker constructor. This prototype provides functionality for animating and calculating
- * frame statistics.
- *
- * @returns {object} The ticker object.
- */
-function Ticker() {
-    this.tickCount = 0;
-    this.t = 0.0;
-    this.dt = 0.0;
+define(function(require) {
+    "use strict";
+    
+    /**
+    * Provides requestAnimationFrame in a cross browser way.
+    */
+    window.requestAnimFrame = (function() {
+        return  window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+                  return window.setTimeout(callback, 1000/60);
+                };
+    })();
 
     /**
-     * Starts or restarts the ticker.
+     * Ticker constructor. This prototype provides functionality for animating and calculating
+     * frame statistics.
      *
-     * @param {object} update - An object with an update() method called every frame.
+     * @returns {object} The ticker object.
      */
-    this.start = function(owner, update) {
-        "use strict";
-
+    function Ticker() {
         this.tickCount = 0;
-        this.t = new Date().getTime();
+        this.t = 0.0;
         this.dt = 0.0;
 
-        var _this = this;
-        function tick() {
-            var now = new Date().getTime();
-            _this.dt = (now - _this.t) / 1000.0;
-            _this.t = now;
-            _this.tickCount++;
+        /**
+         * Starts or restarts the ticker.
+         *
+         * @param {object} update - An object with an update() method called every frame.
+         */
+        this.start = function(owner, update) {
+            "use strict";
 
-            owner.update();
+            this.tickCount = 0;
+            this.t = new Date().getTime();
+            this.dt = 0.0;
+
+            var _this = this;
+            function tick() {
+                var now = new Date().getTime();
+                _this.dt = (now - _this.t) / 1000.0;
+                _this.t = now;
+                _this.tickCount++;
+
+                owner.update();
+
+                requestAnimFrame(tick);
+            }
 
             requestAnimFrame(tick);
-        }
+        };
+    }
+    
+    return Ticker;
+});
 
-        requestAnimFrame(tick);
-    };
-}
+

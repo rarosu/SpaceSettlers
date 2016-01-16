@@ -1,4 +1,7 @@
-var Chunk =
-{
-    size: 16	
-};
+define(function(require) {
+    "use strict";
+    
+    return {
+        size: 16
+    };
+});
