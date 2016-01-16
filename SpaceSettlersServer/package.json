@@ -1,0 +1,26 @@
+{
+  "name": "space-settlers-server",
+  "version": "0.0.1",
+  "description": "The web server for the strategy game Space Settlers.",
+  "keywords": [
+    "game",
+    "strategy"
+  ],
+  "license": "MIT",
+  "contributors": [
+      {
+          "name": "Lars Woxberg",
+          "email": "lars.woxberg@gmail.com"
+      },
+      {
+          "name": "Thomas Woxberg"
+      }
+  ],
+  "repository": "https://github.com/rarosu/SpaceSettlers.git",
+  "dependencies": {
+    "express": "^4.13.3"
+  },
+  "scripts": {
+    "start": "node main.js"
+  }
+}
