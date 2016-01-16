@@ -4,3 +4,5 @@
 global-acl.xml
 /SpaceSettlersWeb/nbproject/private/
 /SpaceSettlersWeb/node_modules/
+/SpaceSettlersServer/nbproject/private/
+/SpaceSettlersServer/node_modules/
