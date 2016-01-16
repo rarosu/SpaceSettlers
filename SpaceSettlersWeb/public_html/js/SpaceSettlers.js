@@ -64,7 +64,7 @@ define(function(require) {
         }
         var _this = this; 
         {
-            AssimpLoader.load('/SpaceSettlersWeb/assets/semitruck.json', function(object) {
+            AssimpLoader.load('/assets/semitruck.json', function(object) {
            
                 _this.renderingProcessor.scene.add(object); 
             }); 
