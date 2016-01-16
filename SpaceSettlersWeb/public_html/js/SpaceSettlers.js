@@ -62,10 +62,11 @@ define(function(require) {
             camera.lookAt = new THREE.Vector3(0, 0, 0);
             camera.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000.0);
         }
-        
+        var _this = this; 
         {
-            AssimpLoader.load('semitruck.json', function(object) {
-                var t = 0; 
+            AssimpLoader.load('/SpaceSettlersWeb/assets/semitruck.json', function(object) {
+           
+                _this.renderingProcessor.scene.add(object); 
             }); 
         }
 

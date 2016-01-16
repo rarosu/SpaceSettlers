@@ -354,7 +354,7 @@ THREE.AssimpJSONLoader.prototype = {
 			}
 
 		}
-
+               init_props.side = THREE.DoubleSide;      
 		mat = new THREE.MeshPhongMaterial( init_props );
 		return mat;
 
