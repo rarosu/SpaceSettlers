@@ -4,6 +4,7 @@ define(function(require) {
     var ECS = require('External/ecs');
     var THREE = require('THREE');
     var Ticker = require('Ticker');
+    var AssimpLoader = require('External/AssimpJSONLoader'); 
     
     var Transform = require('Components/Transform');
     var Renderable = require('Components/Renderable');
@@ -30,6 +31,8 @@ define(function(require) {
     
     var VehicleOrder = require('Components/VehicleOrder');
     var VehicleActions = require('Components/VehicleActions');
+    
+    
     
     console.log('THREE.js revision: ' + THREE.REVISION);
     
@@ -58,6 +61,12 @@ define(function(require) {
             camera.radius = 50.0;
             camera.lookAt = new THREE.Vector3(0, 0, 0);
             camera.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000.0);
+        }
+        
+        {
+            AssimpLoader.load('semitruck.json', function(object) {
+                var t = 0; 
+            }); 
         }
 
 

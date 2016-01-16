@@ -11,6 +11,10 @@
  * See webgl_loader_assimp2json example.
  */
 
+define(function(require) {
+    var THREE = require('THREE');
+    
+
 THREE.AssimpJSONLoader = function ( manager ) {
 
 	this.manager = ( manager !== undefined ) ? manager : THREE.DefaultLoadingManager;
@@ -384,3 +388,8 @@ THREE.AssimpJSONLoader.prototype = {
 
 	},
 };
+
+    return THREE.AssimpJSONLoader.prototype; 
+});
+
+ 
