@@ -32,6 +32,9 @@ define(function(require) {
     var VehicleOrder = require('Components/VehicleOrder');
     var VehicleActions = require('Components/VehicleActions');
     
+    var BuildState = require('Components/BuildState');
+    
+    
     
     
     console.log('THREE.js revision: ' + THREE.REVISION);
@@ -53,6 +56,7 @@ define(function(require) {
         this.entityManager.registerComponent('PickingMessage', PickingMessage);
         this.entityManager.registerComponent('TilePickedMessage', TilePickedMessage);
         this.entityManager.registerComponent('Selected', Selected);
+        this.entityManager.registerComponent('BuildState', BuildState); 
         
         {
             var cameraEntity = this.entityManager.createEntity(['Transform', 'Camera', 'InputReceiver']);
