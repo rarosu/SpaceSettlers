@@ -32,13 +32,17 @@ define(function(require) {
     var VehicleOrder = require('Components/VehicleOrder');
     var VehicleActions = require('Components/VehicleActions');
     
-    
+    var ResourceLoader = require('ResourceLoader');
+    var StartupLoadingState = require('GameStates/StartupLoadingState');
     
     console.log('THREE.js revision: ' + THREE.REVISION);
     
     function SpaceSettlers()
     {
         this.ticker = new Ticker();
+        
+        this.resourceLoader = new ResourceLoader('assets');
+        this.startupLoadingState = new StartupLoadingState('assets/manifest.json');
         
         this.entityManager = new ECS.EntityManager();
         this.entityManager.registerComponent('Transform', Transform);
