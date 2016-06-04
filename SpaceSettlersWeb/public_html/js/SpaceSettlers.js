@@ -42,7 +42,8 @@ define(function(require) {
         this.ticker = new Ticker();
         
         this.resourceLoader = new ResourceLoader('assets');
-        this.startupLoadingState = new StartupLoadingState('assets/manifest.json');
+        this.startupLoadingState = new StartupLoadingState('assets/manifest.json', this.resourceLoader);
+        this.startupLoadingState.enter();
         
         this.entityManager = new ECS.EntityManager();
         this.entityManager.registerComponent('Transform', Transform);
@@ -68,7 +69,7 @@ define(function(require) {
         }
         var _this = this; 
         {
-            AssimpLoader.load('/assets/semitruck.json', function(object) {
+            AssimpLoader.load('/assets/models/semitruck.json', function(object) {
            
                 _this.renderingProcessor.scene.add(object); 
             }); 

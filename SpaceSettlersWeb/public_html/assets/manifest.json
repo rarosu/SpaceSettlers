@@ -1,3 +1,4 @@
 [
-    { "name": "grass", "type": "texture", "url": "textures/grass.png" }
+    { "name": "grass", "type": "texture", "url": "textures/grass.png" },
+    { "name": "semitruck", "type": "model", "url": "models/semitruck.json" }
 ]
