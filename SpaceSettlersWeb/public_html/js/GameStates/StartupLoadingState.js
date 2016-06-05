@@ -1,13 +1,12 @@
 define(function(require) {
     "use strict";
     
-    function StartupLoadingState(manifestUrl, resourceLoader)
+    function StartupLoadingState(manifestUrl, resourceLoader, inGameState)
     {
         this.manifestUrl = manifestUrl;
         this.resourceLoader = resourceLoader;
+        this.inGameState = inGameState;
         this.areResourcesLoaded = false;
-        
-        console.log(this.resourceLoader);
     }
     
     StartupLoadingState.prototype.enter = function()
@@ -18,7 +17,9 @@ define(function(require) {
         manifestRequest.onload = function(e) 
         {
             var manifest = JSON.parse(manifestRequest.responseText);
-            _this.resourceLoader.load(manifest, this._resourcesSuccessfullyLoaded, this._resourcesFailedToLoad);
+            _this.resourceLoader.load(manifest).then(function() {
+                _this.areResourcesLoaded = true;
+            });
         };
         
         manifestRequest.open('GET', this.manifestUrl);
@@ -32,18 +33,10 @@ define(function(require) {
     
     StartupLoadingState.prototype.update = function(ticker)
     {
-        
-    };
-    
-    StartupLoadingState.prototype._resourcesSuccessfullyLoaded = function()
-    {
-        console.log("All resources are loaded");
-        this.areResourcesLoaded = true;
-    };
-    
-    StartupLoadingState.prototype._resourcesFailedToLoad = function(error)
-    {
-        
+        if (this.areResourcesLoaded)
+        {
+            return this.inGameState;
+        }
     };
     
     return StartupLoadingState;

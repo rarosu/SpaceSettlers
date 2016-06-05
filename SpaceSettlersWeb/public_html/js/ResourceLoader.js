@@ -15,9 +15,19 @@ define(function(require) {
     };
     
     /**
-     * Loads the files specified by the given manifest object.
+     * Return a resource by name.
      */
-    ResourceLoader.prototype.load = function(manifest, successCallback, errorCallback)
+    ResourceLoader.prototype.get = function(name) 
+    {
+        return this.resources[name];
+    };
+    
+    /**
+     * Loads the files specified by the given manifest object.
+     * @param {Object} manifest An array of objects with name, type and url string properties.
+     * @returns {Object} A promise object that is resolved when all resources are loaded.
+     */
+    ResourceLoader.prototype.load = function(manifest)
     {
         var i;
         var promises = [];
@@ -38,26 +48,21 @@ define(function(require) {
         }
         
         var _this = this;
-        Q.allSettled(promises).then(function(result) {
-            // Success.
-            var k;
-            for (k = 0; k < result.length; k++)
-            {
-                if (result[k].state === 'fulfilled')
+        return Q.Promise(function(resolve, reject, notify) {
+            Q.allSettled(promises).then(function(result) {
+                var k;
+                for (k = 0; k < result.length; k++)
                 {
-                    var loaded = result[k].value;
-                    var name = loaded.manifestEntry.name;
-                    _this.resources[name] = loaded.resource;
+                    if (result[k].state === 'fulfilled')
+                    {
+                        var loaded = result[k].value;
+                        var name = loaded.manifestEntry.name;
+                        _this.resources[name] = loaded.resource;
+                    }
                 }
-            }
-            
-            successCallback();
-        }, function(error) {
-            // Error.
-            errorCallback(error);
-        }, function(progress) {
-            // Progress.
-            // TODO: Check whether this is actually called by all, and what the value is in that case.
+                
+                resolve();
+            });
         });
     };
     
@@ -69,7 +74,6 @@ define(function(require) {
         this.textureLoader.load(url,
             function(texture) {
                 // Success.
-                console.log("Successfully loaded texture: " + url);
                 _this.loadedCount++;
                 deferred.resolve({ manifestEntry: manifestEntry, resource: texture });
             }, function(xhr) {
@@ -77,7 +81,6 @@ define(function(require) {
                 deferred.notify(xhr.loaded / xhr.total);
             }, function(xhr) {
                 // Error.
-                console.log('Failed to load texture: ' + url);
                 deferred.reject("Failed to load texture: " + url);
             });
         return deferred.promise;
