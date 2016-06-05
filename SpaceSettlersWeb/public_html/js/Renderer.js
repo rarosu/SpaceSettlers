@@ -11,6 +11,7 @@ define(function(require) {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(this.renderer.domElement);
 
         // Hard-coded light for the time being.

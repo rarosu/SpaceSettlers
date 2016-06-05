@@ -21,6 +21,11 @@ define(function(require) {
         this.entityManager = entityManager;
         this.resourceLoader = resourceLoader;
 
+        
+    }
+    
+    InGameState.prototype.enter = function()
+    {
         // Setup a camera
         {
             var cameraEntity = this.entityManager.createEntity(['Transform', 'Camera', 'InputReceiver']);
@@ -61,17 +66,15 @@ define(function(require) {
             this.entityManager.addTag(this.selectedObject, 'Selected');
         }
         
-        this.buildProcessor = new BuildProcessor(this.entityManager, this.worldGenerator);
-        this.entityManager.registerProcessor(this.buildProcessor);
-    }
-    
-    InGameState.prototype.enter = function()
-    {
         // Generate a new world every time.
         {
-            this.worldGenerator = new WorldGenerator(this.entityManager);
+            this.worldGenerator = new WorldGenerator(this.entityManager, this.resourceLoader.get('test_texture'));
             this.world = this.worldGenerator.generateWorld({x: 8, y: 8}, 16);
         }
+        
+        // Setup build processor (currently with dependency on world generator).
+        this.buildProcessor = new BuildProcessor(this.entityManager, this.worldGenerator);
+        this.entityManager.registerProcessor(this.buildProcessor);
         
         // TEMPORARY: Setup a couple of stations.
         {
