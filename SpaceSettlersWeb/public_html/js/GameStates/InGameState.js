@@ -68,7 +68,7 @@ define(function(require) {
         
         // Generate a new world every time.
         {
-            this.worldGenerator = new WorldGenerator(this.entityManager, this.resourceLoader.get('test_texture'));
+            this.worldGenerator = new WorldGenerator(this.entityManager, this.resourceLoader.get('grass'));
             this.world = this.worldGenerator.generateWorld({x: 8, y: 8}, 16);
         }
         

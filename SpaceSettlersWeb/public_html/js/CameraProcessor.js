@@ -23,8 +23,6 @@ define(function(require) {
             {
                 var t = 0; 
                 camera.radius += inputReceiver.currentState.wheel.wheelY / 50.0;
-                console.log('wheelY = ');
-                console.log(inputReceiver.currentState.wheel.wheelY);
             }
 
             // Move the camera look at point.

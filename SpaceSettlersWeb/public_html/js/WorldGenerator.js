@@ -248,18 +248,12 @@ define(function(require) {
         var normals = this.generateNormals(heightmap, chunkCount, chunkSize, chunkX, chunkY);
         var texcoords = this.generateTexcoords(heightmap, chunkCount, chunkSize, chunkX, chunkY);
 
-        console.log(texcoords);
-
         var geometry = new THREE.BufferGeometry();
         geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
         geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
         geometry.addAttribute( 'uv', new THREE.BufferAttribute( texcoords, 2 ));
         
-        //this.grassTexture.wrapS = this.grassTexture.wrapT = THREE.RepeatWrapping;
-        //this.grassTexture.repeat.set(1, 1);
-        //var material = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: this.grassTexture });
-        var material = new THREE.MeshPhongMaterial({ map: this.grassTexture });
-        //var material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide });
+        var material = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: this.grassTexture });1
 
         renderable.mesh = new THREE.Mesh(geometry, material);
     };
@@ -505,43 +499,38 @@ define(function(require) {
                 var tileIndex = y * chunkSize + x;
                 var index = tileIndex * 6 * 2;
                 
-                //var step = 1.0 / 64.0;
                 var step = 1.0;
-                var p1 = new THREE.Vector2(0, 0);
-                var p2 = new THREE.Vector2(0, step);
-                var p3 = new THREE.Vector2(step, step);
-                var p4 = new THREE.Vector2(step, 0);
                 if (slope === this.SLOPE_NE || slope === this.SLOPE_SW)
                 {
-                    texcoords[index] = p1.x;
-                    texcoords[index + 1] = p1.y;
-                    texcoords[index + 2] = p2.x;
-                    texcoords[index + 3] = p2.y;
-                    texcoords[index + 4] = p3.x;
-                    texcoords[index + 5] = p3.y;
+                    texcoords[index] = 0;
+                    texcoords[index + 1] = 0;
+                    texcoords[index + 2] = 0;
+                    texcoords[index + 3] = step;
+                    texcoords[index + 4] = step;
+                    texcoords[index + 5] = step;
                     
-                    texcoords[index + 6] = p1.x;
-                    texcoords[index + 7] = p1.y;
-                    texcoords[index + 8] = p3.x;
-                    texcoords[index + 9] = p3.y;
-                    texcoords[index + 10] = p4.x;
-                    texcoords[index + 11] = p4.y;
+                    texcoords[index + 6] = step;
+                    texcoords[index + 7] = step;
+                    texcoords[index + 8] = step;
+                    texcoords[index + 9] = 0;
+                    texcoords[index + 10] = 0;
+                    texcoords[index + 11] = 0;
                 }
                 else
                 {
-                    texcoords[index] = p1.x;
-                    texcoords[index + 1] = p1.y;
-                    texcoords[index + 2] = p2.x;
-                    texcoords[index + 3] = p2.y;
-                    texcoords[index + 4] = p4.x;
-                    texcoords[index + 5] = p4.y;
+                    texcoords[index] = 0;
+                    texcoords[index + 1] = 0;
+                    texcoords[index + 2] = 0;
+                    texcoords[index + 3] = step;
+                    texcoords[index + 4] = step;
+                    texcoords[index + 5] = 0;
                     
-                    texcoords[index + 6] = p4.x;
-                    texcoords[index + 7] = p4.y;
-                    texcoords[index + 8] = p2.x;
-                    texcoords[index + 9] = p2.y;
-                    texcoords[index + 10] = p3.x;
-                    texcoords[index + 11] = p3.y;
+                    texcoords[index + 6] = 0;
+                    texcoords[index + 7] = step;
+                    texcoords[index + 8] = step;
+                    texcoords[index + 9] = step;
+                    texcoords[index + 10] = step;
+                    texcoords[index + 11] = 0;
                 }
             }
         }
