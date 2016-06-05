@@ -13,9 +13,10 @@ define(function (require) {
         this.stateEntity = this.entityManager.createEntity(['BuildState']);
         this.entityManager.addTag(this.stateEntity, 'BuildState');
         this.state = this.entityManager.getComponent(this.stateEntity, 'BuildState');
-        this.state.state = BuildStateEnum.CONSTRUCTION;
+        this.state.state = BuildStateEnum.ROAD;
 
         this.constructionProcessor = new ConstructionProcessor(entityManager, worldGenerator);
+        this.roadConstructionProcessor = new RoadConstructionProcessor(entityManager, worldGenerator);
 
 
         this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
@@ -24,12 +25,15 @@ define(function (require) {
 
     BuildProcessor.prototype.update = function ()
     {
-        
+
         switch (this.state.state)
         {
-            case BuildStateEnum.CONSTRUCTION: 
+            case BuildStateEnum.CONSTRUCTION:
                 this.constructionProcessor.update();
-                break; 
+                break;
+            case BuildStateEnum.ROAD:
+                this.roadConstructionProcessor.update();
+                break;
         }
 
     };
@@ -70,10 +74,10 @@ define(function (require) {
         this.entityManager = entityManager;
         this.worldGenerator = worldGenerator;
         this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
-        
+
         var selectedEntity = this.entityManager.getEntityByTag('Selected');
         var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
-        
+
         this.ghostObject = this.entityManager.createEntity(['Transform', 'Renderable']);
         var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
         var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
@@ -134,7 +138,7 @@ define(function (require) {
             }
         }
     }
-    
+
     ConstructionProcessor.prototype.canPlaceObject = function (tileX, tileY)
     {
         var worldEntity = this.entityManager.getEntityByTag('World');
@@ -164,6 +168,240 @@ define(function (require) {
         }
 
         return slope;
+    };
+
+
+    function RoadConstructionProcessor(entityManager, worldGenerator) {
+        this.entityManager = entityManager;
+        this.worldGenerator = worldGenerator;
+        this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
+
+        var selectedEntity = this.entityManager.getEntityByTag('Selected');
+        var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
+
+        this.ghostObject = this.entityManager.createEntity(['Transform', 'Renderable']);
+        var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
+        var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
+        transform.position = new THREE.Vector3(10, 10, 10);
+
+        // TODO: Selected object should provide a mesh 
+        var geometry = new THREE.BoxGeometry(1, 0.1, 1);
+        var material = new THREE.MeshLambertMaterial({color: 0xeeeeee});
+        renderable.mesh = new THREE.Mesh(geometry, material);
+    }
+
+    RoadConstructionProcessor.prototype.update = function () {
+        for (var tilePickedMessage = this.tilePickedMessageFilter.first(); tilePickedMessage !== undefined; tilePickedMessage = this.tilePickedMessageFilter.next())
+        {
+            var tilePicked = this.entityManager.getComponent(tilePickedMessage, 'TilePickedMessage');
+            switch (tilePicked.pickingEvent)
+            {
+                case PickingEvent.CLICK:
+                    {
+                        if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
+
+                            var selectedEntity = this.entityManager.getEntityByTag('Selected');
+                            var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
+                            var worldEntity = this.entityManager.getEntityByTag('World');
+
+                            var object = this.entityManager.createEntity(['Transform', 'Renderable']);
+                            var transform = this.entityManager.getComponent(object, 'Transform');
+                            var renderable = this.entityManager.getComponent(object, 'Renderable');
+                            transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ + 0.01, tilePicked.tileY);
+
+                            // TODO mesh and properties should be provided by selected item
+
+
+                            var world = this.entityManager.getComponent(worldEntity, 'World');
+                            var slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, tilePicked.tileX, tilePicked.tileY);
+                            var nw = slope & this.worldGenerator.SLOPE_NW ? 1 : 0;
+                            var ne = slope & this.worldGenerator.SLOPE_NE ? 1 : 0;
+                            var sw = slope & this.worldGenerator.SLOPE_SW ? 1 : 0;
+                            var se = slope & this.worldGenerator.SLOPE_SE ? 1 : 0;
+
+                            var positions = new Float32Array(6 * 3);
+
+                            if (slope == this.worldGenerator.SLOPE_NE || slope == this.worldGenerator.SLOPE_SW)
+                            {
+                                positions[0] = 0;
+                                positions[1] = nw;
+                                positions[2] = 0;
+
+                                positions[3] = 0;
+                                positions[4] = sw;
+                                positions[5] = 1;
+
+                                positions[6] = 1;
+                                positions[7] = se;
+                                positions[8] = 1;
+
+
+                                positions[9] = 1;
+                                positions[10] = se;
+                                positions[11] = 1;
+
+                                positions[12] = 1;
+                                positions[13] = ne;
+                                positions[14] = 0;
+
+                                positions[15] = 0;
+                                positions[16] = nw;
+                                positions[17] = 0;
+                            } else
+                            {
+                                positions[0] = 0;
+                                positions[1] = nw;
+                                positions[2] = 0;
+
+                                positions[3] = 0;
+                                positions[4] = sw;
+                                positions[5] = 1;
+
+                                positions[6] = 1;
+                                positions[7] = ne;
+                                positions[8] = 0;
+
+
+                                positions[9] = 0;
+                                positions[10] = sw;
+                                positions[11] = 1;
+
+                                positions[12] = 1;
+                                positions[13] = se;
+                                positions[14] = 1;
+
+                                positions[15] = 1;
+                                positions[16] = ne;
+                                positions[17] = 0;
+                            }
+
+                            var geometry = new THREE.BufferGeometry();
+                            geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+                            //geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+                            var material = new THREE.MeshLambertMaterial({color: 0xeeeeee});
+                            renderable.mesh = new THREE.Mesh(geometry, material);
+                        }
+                    }
+                    break;
+
+                case PickingEvent.HOVER:
+                    {
+                        var selectedEntity = this.entityManager.getEntityByTag('Selected');
+                        var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
+                        var worldEntity = this.entityManager.getEntityByTag('World');
+
+                        var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
+                        var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
+
+                        transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ + 0.1, tilePicked.tileY);
+
+                        var world = this.entityManager.getComponent(worldEntity, 'World');
+                        var slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, tilePicked.tileX, tilePicked.tileY);
+                        var nw = slope & this.worldGenerator.SLOPE_NW ? 1 : 0;
+                        var ne = slope & this.worldGenerator.SLOPE_NE ? 1 : 0;
+                        var sw = slope & this.worldGenerator.SLOPE_SW ? 1 : 0;
+                        var se = slope & this.worldGenerator.SLOPE_SE ? 1 : 0;
+
+                        var positions = new Float32Array(6 * 3);
+
+                        if (slope == this.worldGenerator.SLOPE_NE || slope == this.worldGenerator.SLOPE_SW)
+                        {
+                            positions[0] = 0;
+                            positions[1] = nw;
+                            positions[2] = 0;
+
+                            positions[3] = 0;
+                            positions[4] = sw;
+                            positions[5] = 1;
+
+                            positions[6] = 1;
+                            positions[7] = se;
+                            positions[8] = 1;
+
+
+                            positions[9] = 1;
+                            positions[10] = se;
+                            positions[11] = 1;
+
+                            positions[12] = 1;
+                            positions[13] = ne;
+                            positions[14] = 0;
+
+                            positions[15] = 0;
+                            positions[16] = nw;
+                            positions[17] = 0;
+                        } else
+                        {
+                            positions[0] = 0;
+                            positions[1] = nw;
+                            positions[2] = 0;
+
+                            positions[3] = 0;
+                            positions[4] = sw;
+                            positions[5] = 1;
+
+                            positions[6] = 1;
+                            positions[7] = ne;
+                            positions[8] = 0;
+
+
+                            positions[9] = 0;
+                            positions[10] = sw;
+                            positions[11] = 1;
+
+                            positions[12] = 1;
+                            positions[13] = se;
+                            positions[14] = 1;
+
+                            positions[15] = 1;
+                            positions[16] = ne;
+                            positions[17] = 0;
+                        }
+                        if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
+
+                            //var normals = this.generateNormals(heightmap, chunkCount, chunkSize, chunkX, chunkY);
+
+                            var geometry = new THREE.BufferGeometry();
+                            geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+                            //geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+                            var material = new THREE.MeshLambertMaterial({color: 0xeeeeee});
+                            geometry.verticesNeedUpdate = true;
+                            geometry.colorsNeedUpdate = true;
+                            renderable.mesh.material = material;
+                            renderable.mesh.geometry = geometry;
+                        } else {
+                            var geometry = new THREE.BufferGeometry();
+                            geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+                            //geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+                            var material = new THREE.MeshLambertMaterial({color: 0xff0000});
+                            geometry.verticesNeedUpdate = true;
+                            geometry.colorsNeedUpdate = true;
+                            renderable.mesh.material = material;
+                            renderable.mesh.geometry = geometry;
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    RoadConstructionProcessor.prototype.canPlaceObject = function (tileX, tileY)
+    {
+        var worldEntity = this.entityManager.getEntityByTag('World');
+        var selectedEntity = this.entityManager.getEntityByTag('Selected');
+
+        if (selectedEntity !== undefined) {
+            var world = this.entityManager.getComponent(worldEntity, 'World');
+            var slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, tileX, tileY);
+            if (slope & this.worldGenerator.SLOPE_NW && slope & this.worldGenerator.SLOPE_NE && !(slope & this.worldGenerator.SLOPE_SE) && !(slope & this.worldGenerator.SLOPE_SW)
+                    || slope & this.worldGenerator.SLOPE_SW && slope & this.worldGenerator.SLOPE_SE && !(slope & this.worldGenerator.SLOPE_NE) && !(slope & this.worldGenerator.SLOPE_NW)
+                    || slope & this.worldGenerator.SLOPE_NW && slope & this.worldGenerator.SLOPE_SW && !(slope & this.worldGenerator.SLOPE_SE) && !(slope & this.worldGenerator.SLOPE_NE)
+                    || slope & this.worldGenerator.SLOPE_NE && slope & this.worldGenerator.SLOPE_SE && !(slope & this.worldGenerator.SLOPE_NW) && !(slope & this.worldGenerator.SLOPE_SW)
+                    || slope === this.worldGenerator.SLOPE_FLAT)
+                return true;
+            else
+                return false;
+        }
     };
 
 
