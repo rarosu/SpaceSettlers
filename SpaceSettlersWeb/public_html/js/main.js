@@ -3,7 +3,7 @@ requirejs.config({
     paths: {
         jquery: 'External/jquery-2.1.4.min',
         Simplex: 'External/simplex',
-        THREE: 'External/three.min'
+        THREE: 'External/three.min',
     },
     shim: {
         THREE: {

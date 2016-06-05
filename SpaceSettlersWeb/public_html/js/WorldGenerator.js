@@ -6,9 +6,10 @@ define(function(require) {
     var THREE = require('THREE');
     var PickingEvent = require('Components/PickingEvent');
     
-    function WorldGenerator(entityManager)
+    function WorldGenerator(entityManager, grassTexture)
     {
         this.entityManager = entityManager;
+        this.grassTexture = grassTexture;
         this.MIN_HEIGHT = -255;
         this.MAX_HEIGHT = 255;
 
@@ -245,12 +246,14 @@ define(function(require) {
     {	
         var positions = this.generatePositions(heightmap, chunkCount, chunkSize, chunkX, chunkY);
         var normals = this.generateNormals(heightmap, chunkCount, chunkSize, chunkX, chunkY);
+        var texcoords = this.generateTexcoords(heightmap, chunkCount, chunkSize, chunkX, chunkY);
 
         var geometry = new THREE.BufferGeometry();
         geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
         geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
-        var material = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide });
-        //var material = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide });
+        geometry.addAttribute( 'uv', new THREE.BufferAttribute( texcoords, 2 ));
+        
+        var material = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: this.grassTexture });1
 
         renderable.mesh = new THREE.Mesh(geometry, material);
     };
@@ -464,7 +467,77 @@ define(function(require) {
 
         return normals;
     };
+    
+    /**
+        Generate the texture coordinates of the heightmap.
+    */
+    WorldGenerator.prototype.generateTexcoords = function(heightmap, chunkCount, chunkSize, chunkX, chunkY)
+    {
+        var texcoords = new Float32Array(chunkSize * chunkSize * 6 * 2);
 
+        var worldWidth = chunkCount.x * chunkSize + 1;
+        for (var y = 0; y < chunkSize; y++)
+        {
+            for (var x = 0; x < chunkSize; x++)
+            {
+                var globalX = chunkX * chunkSize + x;
+                var globalY = chunkY * chunkSize + y;
+                var slope = this.getSlope(heightmap, worldWidth, globalX, globalY);
+                
+                // Use this layout by default.
+                // +----+
+                // |  / |
+                // | /  |
+                // +----+
+
+                // If either NE or SW is raised, use this layout!
+                // +----*
+                // | \  |
+                // |  \ |
+                // *----+
+
+                var tileIndex = y * chunkSize + x;
+                var index = tileIndex * 6 * 2;
+                
+                var step = 1.0;
+                if (slope === this.SLOPE_NE || slope === this.SLOPE_SW)
+                {
+                    texcoords[index] = 0;
+                    texcoords[index + 1] = 0;
+                    texcoords[index + 2] = 0;
+                    texcoords[index + 3] = step;
+                    texcoords[index + 4] = step;
+                    texcoords[index + 5] = step;
+                    
+                    texcoords[index + 6] = step;
+                    texcoords[index + 7] = step;
+                    texcoords[index + 8] = step;
+                    texcoords[index + 9] = 0;
+                    texcoords[index + 10] = 0;
+                    texcoords[index + 11] = 0;
+                }
+                else
+                {
+                    texcoords[index] = 0;
+                    texcoords[index + 1] = 0;
+                    texcoords[index + 2] = 0;
+                    texcoords[index + 3] = step;
+                    texcoords[index + 4] = step;
+                    texcoords[index + 5] = 0;
+                    
+                    texcoords[index + 6] = 0;
+                    texcoords[index + 7] = step;
+                    texcoords[index + 8] = step;
+                    texcoords[index + 9] = step;
+                    texcoords[index + 10] = step;
+                    texcoords[index + 11] = 0;
+                }
+            }
+        }
+        
+        return texcoords;
+    };
+    
     /**
         Get the slope of a tile. The returned value can be masked using the SLOPE_* constants to determine the type of slope.
 
@@ -475,7 +548,6 @@ define(function(require) {
         @return {Number} - A slope value that can be masked using the SLOPE_* constants.
     */
     WorldGenerator.prototype.getSlope = function(heightmap, worldWidth, x, y)
-
     {
         var nw = heightmap[y * worldWidth + x];
         var ne = heightmap[y * worldWidth + (x + 1)];

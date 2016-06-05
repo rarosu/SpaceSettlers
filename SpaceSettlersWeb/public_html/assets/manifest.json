@@ -1,0 +1,5 @@
+[
+    { "name": "test_texture", "type": "texture", "url": "textures/test_texture.png" },
+    { "name": "grass", "type": "texture", "url": "textures/grass.png" },
+    { "name": "semitruck", "type": "model", "url": "models/semitruck.json" }
+]
