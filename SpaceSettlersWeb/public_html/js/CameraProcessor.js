@@ -20,8 +20,9 @@ define(function(require) {
 
             // zoom the camera
             if(Math.abs(inputReceiver.currentState.wheel.wheelY) > 0) 
-            {               
-                camera.radius += inputReceiver.currentState.wheel.wheelY / 50.0; 
+            {
+                var t = 0; 
+                camera.radius += inputReceiver.currentState.wheel.wheelY / 50.0;
             }
 
             // Move the camera look at point.

@@ -3,7 +3,8 @@ var gulp = require('gulp');
 gulp.task('copy-dependencies', function() {
     var sources = ['node_modules/requirejs/require.js',
         'node_modules/three/three.min.js',
-        'node_modules/jquery/dist/jquery.min.js'];
+        'node_modules/jquery/dist/jquery.min.js',
+        'node_modules/q/q.js'];
     var destination = 'public_html/js/External';
     
     for (var i = 0; i< sources.length; i++) {

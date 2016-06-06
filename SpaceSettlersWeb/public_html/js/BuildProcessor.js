@@ -5,9 +5,10 @@ define(function (require) {
     var PickingEvent = require('Components/PickingEvent');
     var BuildStateEnum = require('Components/BuildStateEnum');
 
-    function BuildProcessor(entityManager, worldGenerator) {
+    function BuildProcessor(entityManager, worldGenerator, resourceLoader) {
         this.entityManager = entityManager;
         this.worldGenerator = worldGenerator;
+        this.resourceLoader = resourceLoader;
 
 
         this.stateEntity = this.entityManager.createEntity(['BuildState']);
@@ -16,7 +17,7 @@ define(function (require) {
         this.state.state = BuildStateEnum.ROAD;
 
         this.constructionProcessor = new ConstructionProcessor(entityManager, worldGenerator);
-        this.roadConstructionProcessor = new RoadConstructionProcessor(entityManager, worldGenerator);
+        this.roadConstructionProcessor = new RoadConstructionProcessor(entityManager, worldGenerator, resourceLoader);
 
 
         this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
@@ -171,9 +172,10 @@ define(function (require) {
     };
 
 
-    function RoadConstructionProcessor(entityManager, worldGenerator) {
+    function RoadConstructionProcessor(entityManager, worldGenerator, resourceLoader) {
         this.entityManager = entityManager;
         this.worldGenerator = worldGenerator;
+        this.resourceLoader = resourceLoader;
         this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
 
         var selectedEntity = this.entityManager.getEntityByTag('Selected');
@@ -211,7 +213,7 @@ define(function (require) {
 
                             // TODO mesh and properties should be provided by selected item
 
-
+                            var dirtRoadTexture = this.resourceLoader.get('road_dirt');        
                             var world = this.entityManager.getComponent(worldEntity, 'World');
                             var slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, tilePicked.tileX, tilePicked.tileY);
                             var nw = slope & this.worldGenerator.SLOPE_NW ? 1 : 0;
@@ -220,6 +222,8 @@ define(function (require) {
                             var se = slope & this.worldGenerator.SLOPE_SE ? 1 : 0;
 
                             var positions = new Float32Array(6 * 3);
+                             var texcoords = new Float32Array(6 * 2);
+                              var step = 1.0;
 
                             if (slope == this.worldGenerator.SLOPE_NE || slope == this.worldGenerator.SLOPE_SW)
                             {
@@ -247,6 +251,20 @@ define(function (require) {
                                 positions[15] = 0;
                                 positions[16] = nw;
                                 positions[17] = 0;
+
+                                texcoords[0] = 0;
+                                texcoords[1] = 0;
+                                texcoords[2] = 0;
+                                texcoords[3] = step;
+                                texcoords[4] = step;
+                                texcoords[5] = step;
+
+                                texcoords[6] = step;
+                                texcoords[7] = step;
+                                texcoords[8] = step;
+                                texcoords[9] = 0;
+                                texcoords[10] = 0;
+                                texcoords[11] = 0;
                             } else
                             {
                                 positions[0] = 0;
@@ -273,12 +291,26 @@ define(function (require) {
                                 positions[15] = 1;
                                 positions[16] = ne;
                                 positions[17] = 0;
+
+                                texcoords[0] = 0;
+                                texcoords[1] = 0;
+                                texcoords[2] = 0;
+                                texcoords[3] = step;
+                                texcoords[4] = step;
+                                texcoords[5] = 0;
+
+                                texcoords[6] = 0;
+                                texcoords[7] = step;
+                                texcoords[8] = step;
+                                texcoords[9] = step;
+                                texcoords[10] = step;
+                                texcoords[11] = 0;
                             }
 
                             var geometry = new THREE.BufferGeometry();
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-                            //geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
-                            var material = new THREE.MeshLambertMaterial({color: 0xeeeeee});
+                            geometry.addAttribute('uv', new THREE.BufferAttribute(texcoords, 2));
+                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: dirtRoadTexture});                                                       
                             renderable.mesh = new THREE.Mesh(geometry, material);
                         }
                     }
@@ -289,6 +321,7 @@ define(function (require) {
                         var selectedEntity = this.entityManager.getEntityByTag('Selected');
                         var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
                         var worldEntity = this.entityManager.getEntityByTag('World');
+                        var dirtRoadTexture = this.resourceLoader.get('road_dirt');
 
                         var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
                         var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
@@ -303,6 +336,9 @@ define(function (require) {
                         var se = slope & this.worldGenerator.SLOPE_SE ? 1 : 0;
 
                         var positions = new Float32Array(6 * 3);
+                        var texcoords = new Float32Array(6 * 2);
+
+                        var step = 1.0;
 
                         if (slope == this.worldGenerator.SLOPE_NE || slope == this.worldGenerator.SLOPE_SW)
                         {
@@ -330,6 +366,21 @@ define(function (require) {
                             positions[15] = 0;
                             positions[16] = nw;
                             positions[17] = 0;
+
+                            texcoords[0] = 0;
+                            texcoords[1] = 0;
+                            texcoords[2] = 0;
+                            texcoords[3] = step;
+                            texcoords[4] = step;
+                            texcoords[5] = step;
+
+                            texcoords[6] = step;
+                            texcoords[7] = step;
+                            texcoords[8] = step;
+                            texcoords[9] = 0;
+                            texcoords[10] = 0;
+                            texcoords[11] = 0;
+
                         } else
                         {
                             positions[0] = 0;
@@ -356,15 +407,27 @@ define(function (require) {
                             positions[15] = 1;
                             positions[16] = ne;
                             positions[17] = 0;
+
+                            texcoords[0] = 0;
+                            texcoords[1] = 0;
+                            texcoords[2] = 0;
+                            texcoords[3] = step;
+                            texcoords[4] = step;
+                            texcoords[5] = 0;
+
+                            texcoords[6] = 0;
+                            texcoords[7] = step;
+                            texcoords[8] = step;
+                            texcoords[9] = step;
+                            texcoords[10] = step;
+                            texcoords[11] = 0;
                         }
                         if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
 
-                            //var normals = this.generateNormals(heightmap, chunkCount, chunkSize, chunkX, chunkY);
-
                             var geometry = new THREE.BufferGeometry();
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-                            //geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
-                            var material = new THREE.MeshLambertMaterial({color: 0xeeeeee});
+                            geometry.addAttribute('uv', new THREE.BufferAttribute(texcoords, 2));
+                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: dirtRoadTexture});
                             geometry.verticesNeedUpdate = true;
                             geometry.colorsNeedUpdate = true;
                             renderable.mesh.material = material;
@@ -372,7 +435,6 @@ define(function (require) {
                         } else {
                             var geometry = new THREE.BufferGeometry();
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-                            //geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
                             var material = new THREE.MeshLambertMaterial({color: 0xff0000});
                             geometry.verticesNeedUpdate = true;
                             geometry.colorsNeedUpdate = true;
