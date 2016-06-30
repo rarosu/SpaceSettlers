@@ -95,6 +95,18 @@ define(function(require) {
             function(scene) {
                 // Success.
                 _this.loadedCount++;
+                if(manifestEntry.scale !== undefined) {
+                    scene.scale.x = manifestEntry.scale; 
+                    scene.scale.y = manifestEntry.scale; 
+                    scene.scale.z = manifestEntry.scale;                     
+                }
+                
+                if(manifestEntry.rotationAxis !== undefined && manifestEntry.rotationAngle !== undefined) {
+                    // mining_structure.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
+                    var rotationAxis = new THREE.Vector3(); 
+                    rotationAxis.fromArray(manifestEntry.rotationAxis); 
+                    scene.quaternion.setFromAxisAngle(rotationAxis, manifestEntry.rotationAngle); 
+                }
                 deferred.resolve({ manifestEntry: manifestEntry, resource: scene });
             }, function(xhr) {
                 // Progress.

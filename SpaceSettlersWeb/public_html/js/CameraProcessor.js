@@ -20,13 +20,12 @@ define(function(require) {
 
             // zoom the camera
             if(Math.abs(inputReceiver.currentState.wheel.wheelY) > 0) 
-            {
-                var t = 0; 
-                camera.radius += inputReceiver.currentState.wheel.wheelY / 50.0;
+            {               
+                camera.radius += inputReceiver.currentState.wheel.wheelY / 30.0;
             }
 
             // Move the camera look at point.
-            var speed = 3.0;
+            var speed = 0.5;
             var forward = new THREE.Vector3();
             var right = new THREE.Vector3();
             forward.copy(camera.lookAt).sub(camera.camera.position);

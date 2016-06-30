@@ -6,6 +6,7 @@ define(function(require) {
     
     return {
         mesh: null,
-        addedToScene: false
+        addedToScene: false, 
+        removeFromScene: false
     };
 });

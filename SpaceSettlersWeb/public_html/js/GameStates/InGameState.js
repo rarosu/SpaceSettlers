@@ -12,6 +12,7 @@ define(function(require) {
     var TilePickingProcessor = require('TilePickingProcessor');
     var VehicleProcessor = require('VehicleProcessor');
     var WorldGenerator = require('WorldGenerator');
+    var MenuProcessor = require('MenuProcessor'); 
     
     var VehicleOrder = require('Components/VehicleOrder');
     var VehicleActions = require('Components/VehicleActions');
@@ -58,23 +59,20 @@ define(function(require) {
         this.pickingProcessor = new PickingProcessor(this.entityManager);
         this.entityManager.registerProcessor(this.pickingProcessor);
         
-        // Create an object that is selected and follows the cursor.
-        {
-            this.selectedObject = this.entityManager.createEntity(['Selected']);        
-            var selected = this.entityManager.getComponent(this.selectedObject, 'Selected');        
-            selected.sideLength = 1;        
-            this.entityManager.addTag(this.selectedObject, 'Selected');
-        }
-        
         // Generate a new world every time.
         {
             this.worldGenerator = new WorldGenerator(this.entityManager, this.resourceLoader.get('grass'));
             this.world = this.worldGenerator.generateWorld({x: 8, y: 8}, 16);
         }
         
+        this.menuProcessor = new MenuProcessor(this.entityManager, this.resourceLoader); 
+        this.entityManager.registerProcessor(this.menuProcessor); 
+        
         // Setup build processor (currently with dependency on world generator).
         this.buildProcessor = new BuildProcessor(this.entityManager, this.worldGenerator, this.resourceLoader);
         this.entityManager.registerProcessor(this.buildProcessor);
+        
+        
         
         // TEMPORARY: Setup a couple of stations.
         {
@@ -139,9 +137,17 @@ define(function(require) {
             renderable.mesh = new THREE.Mesh(geometry, material);
         }
         
-        // TEMPORARY: Add the semitruck
-        var semitruck = this.resourceLoader.get('semitruck');
-        this.renderingProcessor.scene.add(semitruck);
+        // TEMPORARY: Add the mining_structure
+        /*
+        var mining_structure = this.resourceLoader.get('mining_structure');
+        mining_structure.scale.x = 0.5; 
+        mining_structure.scale.y = 0.5; 
+        mining_structure.scale.z = 0.5; 
+        mining_structure.quaternion.setFromAxisAngle(new THREE.Vector3(1,0,0), -Math.PI / 2)
+        //mining_structure.
+               
+        this.renderingProcessor.scene.add(mining_structure);
+        */ 
     };
     
     InGameState.prototype.exit = function()

@@ -13,6 +13,11 @@ define(function(require) {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(this.renderer.domElement);
+        
+        // remove the pesky context menu when right clicking on the canvas 
+        this.renderer.domElement.addEventListener('contextmenu', function(e) {
+            e.preventDefault(); 
+        }); 
 
         // Hard-coded light for the time being.
         this.ambientLight = new THREE.AmbientLight(0x404040);
@@ -61,10 +66,13 @@ define(function(require) {
                 renderable.mesh.position.copy(transform.position);
                 renderable.mesh.quaternion.copy(transform.orientation);
 
-                if (!renderable.addedToScene)
-                {
+                if (!renderable.addedToScene && !renderable.removeFromScene) {
                     this.scene.add(renderable.mesh);
                     renderable.addedToScene = true;
+                }
+                else if(renderable.addedToScene && renderable.removeFromScene) {
+                    this.scene.remove(renderable.mesh); 
+                    renderable.addedToScene = false; 
                 }
             }
         }

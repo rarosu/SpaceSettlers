@@ -10,8 +10,10 @@ define(function(require) {
         this.raycaster = new THREE.Raycaster();
 
         var _this = this;
-        document.addEventListener('mousedown', function(e) {
-            // Handle picking by clicking.
+        document.addEventListener('mousedown', function(e) {          
+            if(e.button === 2)
+                _this.emitPickingMessage(e.clientX, e.clientY, PickingEvent.RIGHTCLICK);
+            else             
             _this.emitPickingMessage(e.clientX, e.clientY, PickingEvent.CLICK);
         });
 

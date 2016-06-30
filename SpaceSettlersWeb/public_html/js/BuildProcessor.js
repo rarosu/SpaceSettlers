@@ -11,23 +11,18 @@ define(function (require) {
         this.resourceLoader = resourceLoader;
 
 
-        this.stateEntity = this.entityManager.createEntity(['BuildState']);
-        this.entityManager.addTag(this.stateEntity, 'BuildState');
-        this.state = this.entityManager.getComponent(this.stateEntity, 'BuildState');
-        this.state.state = BuildStateEnum.ROAD;
+        var selectedEntity = this.entityManager.getEntityByTag('Selected');
+        this.selected = this.entityManager.getComponent(selectedEntity, 'MenuItem');
 
         this.constructionProcessor = new ConstructionProcessor(entityManager, worldGenerator);
         this.roadConstructionProcessor = new RoadConstructionProcessor(entityManager, worldGenerator, resourceLoader);
-
-
-        this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
-
     }
 
     BuildProcessor.prototype.update = function ()
     {
-
-        switch (this.state.state)
+        var selectedEntity = this.entityManager.getEntityByTag('Selected');
+        this.selected = this.entityManager.getComponent(selectedEntity, 'MenuItem');
+        switch (this.selected.buildState)
         {
             case BuildStateEnum.CONSTRUCTION:
                 this.constructionProcessor.update();
@@ -39,54 +34,11 @@ define(function (require) {
 
     };
 
-    BuildProcessor.prototype.canPlaceObject = function (tileX, tileY)
-    {
-        var worldEntity = this.entityManager.getEntityByTag('World');
-        var selectedEntity = this.entityManager.getEntityByTag('Selected');
-
-        if (selectedEntity !== undefined) {
-            var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
-            var world = this.entityManager.getComponent(worldEntity, 'World');
-
-            var slope = this.checkSlope(world, tileX, tileY, tileX + selected.sideLength, tileY + selected.sideLength);
-            if (slope === 0)
-                return true;
-            else
-                return false;
-        }
-    };
-
-    BuildProcessor.prototype.checkSlope = function (world, tileX, tileY, tileEndX, tileEndY)
-    {
-        var slope = 0;
-        for (var y = tileY; y < tileEndY; y++) {
-            for (var x = tileX; x < tileEndX; x++) {
-                slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, x, y);
-                if (slope !== 0)
-                    return slope;
-            }
-        }
-
-        return slope;
-    };
-
 
     function ConstructionProcessor(entityManager, worldGenerator) {
         this.entityManager = entityManager;
         this.worldGenerator = worldGenerator;
         this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
-
-        var selectedEntity = this.entityManager.getEntityByTag('Selected');
-        var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
-
-        this.ghostObject = this.entityManager.createEntity(['Transform', 'Renderable']);
-        var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
-        var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
-        transform.position = new THREE.Vector3(0, 0, 0);
-
-        var geometry = new THREE.BoxGeometry(selected.sideLength, 1, selected.sideLength);
-        var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
-        renderable.mesh = new THREE.Mesh(geometry, material);
     }
 
     ConstructionProcessor.prototype.update = function () {
@@ -100,20 +52,19 @@ define(function (require) {
                         if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
 
                             var selectedEntity = this.entityManager.getEntityByTag('Selected');
-                            var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
+                            var menuItem = this.entityManager.getComponent(selectedEntity, 'MenuItem');
+                            var selectedRenderable = this.entityManager.getComponent(selectedEntity, 'Renderable');
 
                             var object = this.entityManager.createEntity(['Transform', 'Renderable', 'Inventory']);
                             var transform = this.entityManager.getComponent(object, 'Transform');
                             var renderable = this.entityManager.getComponent(object, 'Renderable');
                             var inventory = this.entityManager.getComponent(object, 'Inventory');
-                            transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ, tilePicked.tileY + selected.sideLength / 2);
-
+                            transform.position = new THREE.Vector3(tilePicked.tileX + menuItem.sideLength / 2, tilePicked.tileZ, tilePicked.tileY + menuItem.sideLength / 2);
+                            transform.orientation = selectedRenderable.mesh.quaternion;
                             inventory.currentLoad = 3000;
                             inventory.maxLoad = 3000;
 
-                            var geometry = new THREE.BoxGeometry(1, 1, 1);
-                            var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
-                            renderable.mesh = new THREE.Mesh(geometry, material);
+                            renderable.mesh = selectedRenderable.mesh.clone();
                         }
                     }
                     break;
@@ -121,19 +72,16 @@ define(function (require) {
                 case PickingEvent.HOVER:
                     {
                         var selectedEntity = this.entityManager.getEntityByTag('Selected');
-                        var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
-
-                        var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
-                        var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
-                        transform.position = new THREE.Vector3(tilePicked.tileX + selected.sideLength / 2, tilePicked.tileZ + selected.sideLength / 2, tilePicked.tileY + selected.sideLength / 2);
-
-                        if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
-                            var material = new THREE.MeshLambertMaterial({color: 0x0000ff});
-                            renderable.mesh.material = material;
+                        var menuItem = this.entityManager.getComponent(selectedEntity, 'MenuItem');
+                        var transform = this.entityManager.getComponent(selectedEntity, 'Transform');
+                        var renderable = this.entityManager.getComponent(selectedEntity, 'Renderable');
+                        transform.position = new THREE.Vector3(tilePicked.tileX + menuItem.sideLength / 2, tilePicked.tileZ + menuItem.sideLength / 2, tilePicked.tileY + menuItem.sideLength / 2);
+                        
+                /*if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
+                            renderable.mesh = selected.mesh;
                         } else {
-                            var material = new THREE.MeshLambertMaterial({color: 0xff0000});
-                            renderable.mesh.material = material;
-                        }
+                            renderable.mesh = selected.mesh;
+                        }*/ 
                     }
                     break;
             }
@@ -146,7 +94,7 @@ define(function (require) {
         var selectedEntity = this.entityManager.getEntityByTag('Selected');
 
         if (selectedEntity !== undefined) {
-            var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
+            var selected = this.entityManager.getComponent(selectedEntity, 'MenuItem');
             var world = this.entityManager.getComponent(worldEntity, 'World');
 
             var slope = this.checkSlope(world, tileX, tileY, tileX + selected.sideLength, tileY + selected.sideLength);
@@ -179,22 +127,14 @@ define(function (require) {
         this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
 
         var selectedEntity = this.entityManager.getEntityByTag('Selected');
-        var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
-
-        this.ghostObject = this.entityManager.createEntity(['Transform', 'Renderable']);
-        var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
-        var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
-        transform.position = new THREE.Vector3(10, 10, 10);
-
-        // TODO: Selected object should provide a mesh 
-        var geometry = new THREE.BoxGeometry(1, 0.1, 1);
-        var material = new THREE.MeshLambertMaterial({color: 0xeeeeee});
-        renderable.mesh = new THREE.Mesh(geometry, material);
+        var selected = this.entityManager.getComponent(selectedEntity, 'MenuItem');
     }
 
     RoadConstructionProcessor.prototype.update = function () {
+        var texture = this.resourceLoader.get('road_dirt');
         for (var tilePickedMessage = this.tilePickedMessageFilter.first(); tilePickedMessage !== undefined; tilePickedMessage = this.tilePickedMessageFilter.next())
         {
+            
             var tilePicked = this.entityManager.getComponent(tilePickedMessage, 'TilePickedMessage');
             switch (tilePicked.pickingEvent)
             {
@@ -203,7 +143,7 @@ define(function (require) {
                         if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
 
                             var selectedEntity = this.entityManager.getEntityByTag('Selected');
-                            var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
+                            var selected = this.entityManager.getComponent(selectedEntity, 'MenuItem');
                             var worldEntity = this.entityManager.getEntityByTag('World');
 
                             var object = this.entityManager.createEntity(['Transform', 'Renderable']);
@@ -213,7 +153,7 @@ define(function (require) {
 
                             // TODO mesh and properties should be provided by selected item
 
-                            var dirtRoadTexture = this.resourceLoader.get('road_dirt');        
+                            
                             var world = this.entityManager.getComponent(worldEntity, 'World');
                             var slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, tilePicked.tileX, tilePicked.tileY);
                             var nw = slope & this.worldGenerator.SLOPE_NW ? 1 : 0;
@@ -222,8 +162,9 @@ define(function (require) {
                             var se = slope & this.worldGenerator.SLOPE_SE ? 1 : 0;
 
                             var positions = new Float32Array(6 * 3);
-                             var texcoords = new Float32Array(6 * 2);
-                              var step = 1.0;
+                            var texcoords = new Float32Array(6 * 2);
+                            var normals = new Float32Array(6 * 3);
+                            var step = 1.0;
 
                             if (slope == this.worldGenerator.SLOPE_NE || slope == this.worldGenerator.SLOPE_SW)
                             {
@@ -265,6 +206,43 @@ define(function (require) {
                                 texcoords[9] = 0;
                                 texcoords[10] = 0;
                                 texcoords[11] = 0;
+
+                                var p1 = new THREE.Vector3(0, nw, 0);
+                                var p2 = new THREE.Vector3(0, sw, 1);
+                                var p3 = new THREE.Vector3(1, se, 1);
+                                var n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                                normals[0] = n.x;
+                                normals[1] = n.y;
+                                normals[2] = n.z;
+
+                                normals[3] = n.x;
+                                normals[4] = n.y;
+                                normals[5] = n.z;
+
+                                normals[6] = n.x;
+                                normals[7] = n.y;
+                                normals[8] = n.z;
+
+
+                                p1 = new THREE.Vector3(1, se, 1);
+                                p2 = new THREE.Vector3(1, ne, 0);
+                                p3 = new THREE.Vector3(0, nw, 0);
+                                n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                                normals[9] = n.x;
+                                normals[10] = n.y;
+                                normals[11] = n.z;
+
+                                normals[12] = n.x;
+                                normals[13] = n.y;
+                                normals[14] = n.z;
+
+                                normals[15] = n.x;
+                                normals[16] = n.y;
+                                normals[17] = n.z;
+
+
                             } else
                             {
                                 positions[0] = 0;
@@ -305,12 +283,48 @@ define(function (require) {
                                 texcoords[9] = step;
                                 texcoords[10] = step;
                                 texcoords[11] = 0;
+
+                                var p1 = new THREE.Vector3(0, nw, 0);
+                                var p2 = new THREE.Vector3(0, sw, 1);
+                                var p3 = new THREE.Vector3(1, ne, 0);
+                                var n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                                normals[0] = n.x;
+                                normals[1] = n.y;
+                                normals[2] = n.z;
+
+                                normals[3] = n.x;
+                                normals[4] = n.y;
+                                normals[5] = n.z;
+
+                                normals[6] = n.x;
+                                normals[7] = n.y;
+                                normals[8] = n.z;
+
+
+                                p1 = new THREE.Vector3(0, sw, 1);
+                                p2 = new THREE.Vector3(1, se, 1);
+                                p3 = new THREE.Vector3(1, ne, 0);
+                                n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                                normals[9] = n.x;
+                                normals[10] = n.y;
+                                normals[11] = n.z;
+
+                                normals[12] = n.x;
+                                normals[13] = n.y;
+                                normals[14] = n.z;
+
+                                normals[15] = n.x;
+                                normals[16] = n.y;
+                                normals[17] = n.z;
                             }
 
                             var geometry = new THREE.BufferGeometry();
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+                            geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3));
                             geometry.addAttribute('uv', new THREE.BufferAttribute(texcoords, 2));
-                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: dirtRoadTexture});                                                       
+                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
                             renderable.mesh = new THREE.Mesh(geometry, material);
                         }
                     }
@@ -319,12 +333,11 @@ define(function (require) {
                 case PickingEvent.HOVER:
                     {
                         var selectedEntity = this.entityManager.getEntityByTag('Selected');
-                        var selected = this.entityManager.getComponent(selectedEntity, 'Selected');
-                        var worldEntity = this.entityManager.getEntityByTag('World');
-                        var dirtRoadTexture = this.resourceLoader.get('road_dirt');
+                        var menuItem = this.entityManager.getComponent(selectedEntity, 'MenuItem');
+                        var transform = this.entityManager.getComponent(selectedEntity, 'Transform');
+                        var renderable = this.entityManager.getComponent(selectedEntity, 'Renderable');
 
-                        var transform = this.entityManager.getComponent(this.ghostObject, 'Transform');
-                        var renderable = this.entityManager.getComponent(this.ghostObject, 'Renderable');
+                        var worldEntity = this.entityManager.getEntityByTag('World');
 
                         transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ + 0.1, tilePicked.tileY);
 
@@ -337,6 +350,7 @@ define(function (require) {
 
                         var positions = new Float32Array(6 * 3);
                         var texcoords = new Float32Array(6 * 2);
+                        var normals = new Float32Array(6 * 3);
 
                         var step = 1.0;
 
@@ -381,6 +395,41 @@ define(function (require) {
                             texcoords[10] = 0;
                             texcoords[11] = 0;
 
+                            var p1 = new THREE.Vector3(0, nw, 0);
+                            var p2 = new THREE.Vector3(0, sw, 1);
+                            var p3 = new THREE.Vector3(1, se, 1);
+                            var n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                            normals[0] = n.x;
+                            normals[1] = n.y;
+                            normals[2] = n.z;
+
+                            normals[3] = n.x;
+                            normals[4] = n.y;
+                            normals[5] = n.z;
+
+                            normals[6] = n.x;
+                            normals[7] = n.y;
+                            normals[8] = n.z;
+
+
+                            p1 = new THREE.Vector3(1, se, 1);
+                            p2 = new THREE.Vector3(1, ne, 0);
+                            p3 = new THREE.Vector3(0, nw, 0);
+                            n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                            normals[9] = n.x;
+                            normals[10] = n.y;
+                            normals[11] = n.z;
+
+                            normals[12] = n.x;
+                            normals[13] = n.y;
+                            normals[14] = n.z;
+
+                            normals[15] = n.x;
+                            normals[16] = n.y;
+                            normals[17] = n.z;
+
                         } else
                         {
                             positions[0] = 0;
@@ -421,13 +470,49 @@ define(function (require) {
                             texcoords[9] = step;
                             texcoords[10] = step;
                             texcoords[11] = 0;
+
+                            var p1 = new THREE.Vector3(0, nw, 0);
+                            var p2 = new THREE.Vector3(0, sw, 1);
+                            var p3 = new THREE.Vector3(1, ne, 0);
+                            var n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                            normals[0] = n.x;
+                            normals[1] = n.y;
+                            normals[2] = n.z;
+
+                            normals[3] = n.x;
+                            normals[4] = n.y;
+                            normals[5] = n.z;
+
+                            normals[6] = n.x;
+                            normals[7] = n.y;
+                            normals[8] = n.z;
+
+
+                            p1 = new THREE.Vector3(0, sw, 1);
+                            p2 = new THREE.Vector3(1, se, 1);
+                            p3 = new THREE.Vector3(1, ne, 0);
+                            n = p3.sub(p1).cross(p2.sub(p1)).normalize();
+
+                            normals[9] = n.x;
+                            normals[10] = n.y;
+                            normals[11] = n.z;
+
+                            normals[12] = n.x;
+                            normals[13] = n.y;
+                            normals[14] = n.z;
+
+                            normals[15] = n.x;
+                            normals[16] = n.y;
+                            normals[17] = n.z;
                         }
                         if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
 
                             var geometry = new THREE.BufferGeometry();
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+                            geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3));
                             geometry.addAttribute('uv', new THREE.BufferAttribute(texcoords, 2));
-                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: dirtRoadTexture});
+                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
                             geometry.verticesNeedUpdate = true;
                             geometry.colorsNeedUpdate = true;
                             renderable.mesh.material = material;
@@ -442,6 +527,9 @@ define(function (require) {
                             renderable.mesh.geometry = geometry;
                         }
                     }
+                    break;
+                case PickingEvent.RIGHTCLICK:
+
                     break;
             }
         }

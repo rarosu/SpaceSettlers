@@ -17,6 +17,8 @@ define(function(require) {
     var TilePickedMessage = require('Components/TilePickedMessage');
     var Selected = require('Components/Selected');
     var BuildState = require('Components/BuildState');
+    var MenuItem = require('Components/MenuItem'); 
+    var BuildTypeEnum = require('Components/BuildTypeEnum'); 
     
     var ResourceLoader = require('ResourceLoader');
     var InGameState = require('GameStates/InGameState');
@@ -38,6 +40,8 @@ define(function(require) {
         this.entityManager.registerComponent('TilePickedMessage', TilePickedMessage);
         this.entityManager.registerComponent('Selected', Selected);
         this.entityManager.registerComponent('BuildState', BuildState);
+        this.entityManager.registerComponent('MenuItem', MenuItem);
+        this.entityManager.registerComponent('BuildTypeEnum', BuildTypeEnum);
 
         this.ticker = new Ticker();
         this.resourceLoader = new ResourceLoader('assets');
