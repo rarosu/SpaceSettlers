@@ -75,6 +75,7 @@ define(function(require) {
             function(texture) {
                 // Success.
                 _this.loadedCount++;
+                texture.name = manifestEntry.name; 
                 deferred.resolve({ manifestEntry: manifestEntry, resource: texture });
             }, function(xhr) {
                 // Progress.

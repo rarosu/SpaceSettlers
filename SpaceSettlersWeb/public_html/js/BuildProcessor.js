@@ -5,7 +5,7 @@ define(function (require) {
     var PickingEvent = require('Components/PickingEvent');
     var BuildStateEnum = require('Components/BuildStateEnum');
 
-    function BuildProcessor(entityManager, worldGenerator, resourceLoader) {
+    function BuildProcessor(entityManager, worldGenerator, resourceLoader, renderer) {
         this.entityManager = entityManager;
         this.worldGenerator = worldGenerator;
         this.resourceLoader = resourceLoader;
@@ -15,7 +15,7 @@ define(function (require) {
         this.selected = this.entityManager.getComponent(selectedEntity, 'MenuItem');
 
         this.constructionProcessor = new ConstructionProcessor(entityManager, worldGenerator);
-        this.roadConstructionProcessor = new RoadConstructionProcessor(entityManager, worldGenerator, resourceLoader);
+        this.roadConstructionProcessor = new RoadConstructionProcessor(entityManager, worldGenerator, resourceLoader, renderer);
     }
 
     BuildProcessor.prototype.update = function ()
@@ -76,12 +76,12 @@ define(function (require) {
                         var transform = this.entityManager.getComponent(selectedEntity, 'Transform');
                         var renderable = this.entityManager.getComponent(selectedEntity, 'Renderable');
                         transform.position = new THREE.Vector3(tilePicked.tileX + menuItem.sideLength / 2, tilePicked.tileZ + menuItem.sideLength / 2, tilePicked.tileY + menuItem.sideLength / 2);
-                        
-                /*if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
-                            renderable.mesh = selected.mesh;
-                        } else {
-                            renderable.mesh = selected.mesh;
-                        }*/ 
+
+                        /*if (this.canPlaceObject(tilePicked.tileX, tilePicked.tileY)) {
+                         renderable.mesh = selected.mesh;
+                         } else {
+                         renderable.mesh = selected.mesh;
+                         }*/
                     }
                     break;
             }
@@ -120,21 +120,20 @@ define(function (require) {
     };
 
 
-    function RoadConstructionProcessor(entityManager, worldGenerator, resourceLoader) {
+    function RoadConstructionProcessor(entityManager, worldGenerator, resourceLoader, renderer) {
         this.entityManager = entityManager;
         this.worldGenerator = worldGenerator;
         this.resourceLoader = resourceLoader;
+        this.renderer = renderer;
         this.tilePickedMessageFilter = this.entityManager.createEntityFilter(['TilePickedMessage']);
-
-        var selectedEntity = this.entityManager.getEntityByTag('Selected');
-        var selected = this.entityManager.getComponent(selectedEntity, 'MenuItem');
+        this.texture = this.resourceLoader.get('road_dirt');
     }
 
     RoadConstructionProcessor.prototype.update = function () {
-        var texture = this.resourceLoader.get('road_dirt');
+        
         for (var tilePickedMessage = this.tilePickedMessageFilter.first(); tilePickedMessage !== undefined; tilePickedMessage = this.tilePickedMessageFilter.next())
         {
-            
+
             var tilePicked = this.entityManager.getComponent(tilePickedMessage, 'TilePickedMessage');
             switch (tilePicked.pickingEvent)
             {
@@ -151,9 +150,6 @@ define(function (require) {
                             var renderable = this.entityManager.getComponent(object, 'Renderable');
                             transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ + 0.01, tilePicked.tileY);
 
-                            // TODO mesh and properties should be provided by selected item
-
-                            
                             var world = this.entityManager.getComponent(worldEntity, 'World');
                             var slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, tilePicked.tileX, tilePicked.tileY);
                             var nw = slope & this.worldGenerator.SLOPE_NW ? 1 : 0;
@@ -324,7 +320,7 @@ define(function (require) {
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
                             geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3));
                             geometry.addAttribute('uv', new THREE.BufferAttribute(texcoords, 2));
-                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
+                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: this.texture});
                             renderable.mesh = new THREE.Mesh(geometry, material);
                         }
                     }
@@ -339,7 +335,7 @@ define(function (require) {
 
                         var worldEntity = this.entityManager.getEntityByTag('World');
 
-                        transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ + 0.1, tilePicked.tileY);
+                        
 
                         var world = this.entityManager.getComponent(worldEntity, 'World');
                         var slope = this.worldGenerator.getSlope(world.heightmap, world.worldWidth, tilePicked.tileX, tilePicked.tileY);
@@ -353,6 +349,10 @@ define(function (require) {
                         var normals = new Float32Array(6 * 3);
 
                         var step = 1.0;
+                        
+                  
+                        transform.position = new THREE.Vector3(tilePicked.tileX, tilePicked.tileZ + 0.1, tilePicked.tileY);
+                       
 
                         if (slope == this.worldGenerator.SLOPE_NE || slope == this.worldGenerator.SLOPE_SW)
                         {
@@ -512,24 +512,34 @@ define(function (require) {
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
                             geometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3));
                             geometry.addAttribute('uv', new THREE.BufferAttribute(texcoords, 2));
-                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: texture});
+                            var material = new THREE.MeshPhongMaterial({color: 0xffffff, side: THREE.DoubleSide, map: this.texture});
                             geometry.verticesNeedUpdate = true;
                             geometry.colorsNeedUpdate = true;
+                            
                             renderable.mesh.material = material;
-                            renderable.mesh.geometry = geometry;
+                            renderable.mesh.geometry = geometry;                           
                         } else {
                             var geometry = new THREE.BufferGeometry();
                             geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
                             var material = new THREE.MeshLambertMaterial({color: 0xff0000});
                             geometry.verticesNeedUpdate = true;
                             geometry.colorsNeedUpdate = true;
+                           
                             renderable.mesh.material = material;
                             renderable.mesh.geometry = geometry;
                         }
                     }
                     break;
                 case PickingEvent.RIGHTCLICK:
+                    this.texture.name === 'road_dirt' ? this.texture = this.resourceLoader.get('road_dirt_flipped') 
+                        : this.texture = this.resourceLoader.get('road_dirt');
 
+                    var selectedEntity = this.entityManager.getEntityByTag('Selected');
+                    var transform = this.entityManager.getComponent(selectedEntity, 'Transform');
+                    var renderable = this.entityManager.getComponent(selectedEntity, 'Renderable');
+                    renderable.mesh.material.map = this.texture; 
+                    renderable.mesh.material.needsUpdate = true; 
+                     
                     break;
             }
         }

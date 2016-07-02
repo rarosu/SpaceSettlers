@@ -2,6 +2,7 @@
     { "name": "test_texture", "type": "texture", "url": "textures/test_texture.png" },
     { "name": "grass", "type": "texture", "url": "textures/grass.png" },
     { "name": "road_dirt", "type": "texture", "url": "textures/dirt_road.png" },
+    { "name": "road_dirt_flipped", "type": "texture", "url": "textures/dirt_road_flipped.png" },
     { "name": "road_asphalt_single_file", "type": "texture", "url": "textures/road_asphalt_single_file.png" },
     { "name": "road_asphalt_two_files", "type": "texture", "url": "textures/road_asphalt_two_files.png" },  
     { "name": "mining_structure", "type": "model", "url": "models/mining_structure.json", "scale": 0.5, "rotationAxis": [1,0,0], "rotationAngle": -1.5707963267948966192313216916398 } 

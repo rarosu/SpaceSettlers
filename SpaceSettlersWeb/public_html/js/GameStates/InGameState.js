@@ -69,7 +69,7 @@ define(function(require) {
         this.entityManager.registerProcessor(this.menuProcessor); 
         
         // Setup build processor (currently with dependency on world generator).
-        this.buildProcessor = new BuildProcessor(this.entityManager, this.worldGenerator, this.resourceLoader);
+        this.buildProcessor = new BuildProcessor(this.entityManager, this.worldGenerator, this.resourceLoader, this.renderingProcessor);
         this.entityManager.registerProcessor(this.buildProcessor);
         
         
